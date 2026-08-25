@@ -7,8 +7,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!me) redirect("/login");
 
   return (
-    <div className="flex flex-col h-dvh min-h-0 max-w-[480px] mx-auto w-full overflow-hidden" style={{ background: "var(--bg)" }}>
-      <div className="flex-1 min-h-0 flex flex-col overflow-hidden">{children}</div>
+    <div className="flex flex-col min-h-dvh max-w-[480px] mx-auto w-full" style={{ background: "var(--bg)" }}>
+      <div className="flex-1 flex flex-col">{children}</div>
       <NavBar isAdmin={me.is_admin} />
     </div>
   );

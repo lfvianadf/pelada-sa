@@ -310,7 +310,7 @@ export function AoVivoClient({
           </button>
         )}
 
-        <div className="w-full flex flex-col gap-2 flex-1 overflow-y-auto">
+        <div className="w-full flex flex-col gap-2">
           <div className="text-[11px] font-bold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
             Eventos da partida
           </div>

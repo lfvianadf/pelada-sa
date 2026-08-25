@@ -1,17 +1,17 @@
 export function Screen({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex flex-col h-dvh min-h-0 max-w-[480px] mx-auto w-full overflow-hidden" style={{ background: "var(--bg)" }}>
+    <div className="flex flex-col min-h-dvh max-w-[480px] mx-auto w-full" style={{ background: "var(--bg)" }}>
       {children}
     </div>
   );
 }
 
 export function ScreenContent({ children }: { children: React.ReactNode }) {
-  return <div className="flex flex-col flex-1 min-h-0 overflow-hidden">{children}</div>;
+  return <div className="flex flex-col flex-1">{children}</div>;
 }
 
 export function ScreenBody({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <div className={`flex-1 min-h-0 overflow-y-auto px-5 py-5 flex flex-col gap-5 ${className}`}>{children}</div>;
+  return <div className={`flex-1 px-5 py-5 flex flex-col gap-5 ${className}`}>{children}</div>;
 }
 
 export function BottomCTA({ children }: { children: React.ReactNode }) {
