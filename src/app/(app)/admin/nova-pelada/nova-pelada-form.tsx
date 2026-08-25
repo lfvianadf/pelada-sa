@@ -187,6 +187,50 @@ export function NovaPeladaForm({
                 </button>
               </div>
             </div>
+
+            <div className="flex flex-col gap-2.5">
+              <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
+                Formato dos jogos
+              </span>
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => setFormat("todos_contra_todos")}
+                  className="rounded-xl p-3.5 text-left"
+                  style={{
+                    background: "var(--bg2)",
+                    border: `1.5px solid ${format === "todos_contra_todos" ? "var(--gold)" : "var(--hairline)"}`,
+                  }}
+                >
+                  <div
+                    className="font-[var(--font-head)] font-extrabold text-[14px] uppercase tracking-wide"
+                    style={{ color: format === "todos_contra_todos" ? "var(--gold)" : "var(--text)" }}
+                  >
+                    Todos contra todos
+                  </div>
+                  <div className="text-[12px] mt-0.5" style={{ color: "var(--muted)" }}>
+                    Cada time enfrenta todos os outros uma vez.
+                  </div>
+                </button>
+                <button
+                  onClick={() => setFormat("vencedor_fica")}
+                  className="rounded-xl p-3.5 text-left"
+                  style={{
+                    background: "var(--bg2)",
+                    border: `1.5px solid ${format === "vencedor_fica" ? "var(--gold)" : "var(--hairline)"}`,
+                  }}
+                >
+                  <div
+                    className="font-[var(--font-head)] font-extrabold text-[14px] uppercase tracking-wide"
+                    style={{ color: format === "vencedor_fica" ? "var(--gold)" : "var(--text)" }}
+                  >
+                    Vencedor fica
+                  </div>
+                  <div className="text-[12px] mt-0.5" style={{ color: "var(--muted)" }}>
+                    Quem vence continua jogando contra o próximo time da fila; quem perde vai pro final da fila.
+                  </div>
+                </button>
+              </div>
+            </div>
           </>
         )}
 
@@ -305,48 +349,6 @@ export function NovaPeladaForm({
             </div>
             <div className="text-center text-[12px]" style={{ color: "var(--muted)" }}>
               {presentIds.length} jogadores presentes serão distribuídos por estrelas (snake draft).
-            </div>
-
-            <span className="text-[10px] font-bold uppercase tracking-wide mt-2" style={{ color: "var(--muted)" }}>
-              Formato dos jogos
-            </span>
-            <div className="flex flex-col gap-2">
-              <button
-                onClick={() => setFormat("todos_contra_todos")}
-                className="rounded-xl p-3.5 text-left"
-                style={{
-                  background: "var(--bg2)",
-                  border: `1.5px solid ${format === "todos_contra_todos" ? "var(--gold)" : "var(--hairline)"}`,
-                }}
-              >
-                <div
-                  className="font-[var(--font-head)] font-extrabold text-[14px] uppercase tracking-wide"
-                  style={{ color: format === "todos_contra_todos" ? "var(--gold)" : "var(--text)" }}
-                >
-                  Todos contra todos
-                </div>
-                <div className="text-[12px] mt-0.5" style={{ color: "var(--muted)" }}>
-                  Cada time enfrenta todos os outros uma vez.
-                </div>
-              </button>
-              <button
-                onClick={() => setFormat("vencedor_fica")}
-                className="rounded-xl p-3.5 text-left"
-                style={{
-                  background: "var(--bg2)",
-                  border: `1.5px solid ${format === "vencedor_fica" ? "var(--gold)" : "var(--hairline)"}`,
-                }}
-              >
-                <div
-                  className="font-[var(--font-head)] font-extrabold text-[14px] uppercase tracking-wide"
-                  style={{ color: format === "vencedor_fica" ? "var(--gold)" : "var(--text)" }}
-                >
-                  Vencedor fica
-                </div>
-                <div className="text-[12px] mt-0.5" style={{ color: "var(--muted)" }}>
-                  Quem vence continua jogando contra o próximo time da fila; quem perde vai pro final da fila.
-                </div>
-              </button>
             </div>
           </div>
         )}
