@@ -36,9 +36,11 @@ export default async function SorteioPage({
 
   const { data: teams } = await supabase.from("teams").select("*").eq("pelada_id", peladaId).order("id");
   const teamIds = (teams ?? []).map((t) => t.id);
-  const { data: teamPlayers } =
-    teamIds.length > 0 ? await supabase.from("team_players").select("*").in("team_id", teamIds) : { data: [] };
-  const { data: players } = await supabase.from("players").select("*");
+  const [{ data: teamPlayers }, { data: players }, { data: existingGames }] = await Promise.all([
+    teamIds.length > 0 ? supabase.from("team_players").select("*").in("team_id", teamIds) : Promise.resolve({ data: [] }),
+    supabase.from("players").select("*"),
+    supabase.from("games").select("id").eq("pelada_id", peladaId).limit(1),
+  ]);
 
   return (
     <ScreenContent>
@@ -48,6 +50,7 @@ export default async function SorteioPage({
         teams={teams ?? []}
         teamPlayers={teamPlayers ?? []}
         players={players ?? []}
+        hasGames={(existingGames ?? []).length > 0}
       />
     </ScreenContent>
   );

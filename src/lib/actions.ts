@@ -424,6 +424,25 @@ export async function startLive(gameId: number): Promise<ActionResult> {
   return {};
 }
 
+export async function resetLiveGame(gameId: number): Promise<ActionResult> {
+  const check = await requireAdmin();
+  if ("error" in check) return check;
+  const supabase = await createClient();
+
+  const { error: eventsErr } = await supabase.from("match_events").delete().eq("game_id", gameId);
+  if (eventsErr) return { error: eventsErr.message };
+
+  const { error } = await supabase
+    .from("games")
+    .update({ status: "agendado", started_at: null, score_a: null, score_b: null })
+    .eq("id", gameId);
+  if (error) return { error: error.message };
+
+  revalidatePath("/ao-vivo");
+  revalidatePath("/jogos");
+  return {};
+}
+
 export async function recordEvent(
   gameId: number,
   playerId: number,

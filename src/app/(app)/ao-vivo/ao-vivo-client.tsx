@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { teamColor, fmtClock, type GameRow, type PlayerRow, type TeamRow, type MatchEventRow } from "@/lib/domain";
-import { recordEvent, endLive, resolveVencedorFicaTie } from "@/lib/actions";
+import { recordEvent, endLive, resolveVencedorFicaTie, resetLiveGame } from "@/lib/actions";
 
 type Step = "closed" | "team" | "scorer" | "assist";
 
@@ -216,6 +216,7 @@ export function AoVivoClient({
   const [side, setSide] = useState<"A" | "B" | null>(null);
   const [scorerId, setScorerId] = useState<number | null>(null);
   const [tieInfo, setTieInfo] = useState<{ peladaId: number } | null>(null);
+  const [confirmingReset, setConfirmingReset] = useState(false);
 
   useEffect(() => {
     if (!game.started_at) return;
@@ -292,6 +293,14 @@ export function AoVivoClient({
     });
   }
 
+  function handleReset() {
+    startTransition(async () => {
+      await resetLiveGame(game.id);
+      setConfirmingReset(false);
+      router.refresh();
+    });
+  }
+
   const goalEvents = useMemo(() => [...events].reverse(), [events]);
 
   return (
@@ -347,15 +356,63 @@ export function AoVivoClient({
       </div>
 
       {isAdmin && (
-        <div className="px-5 pt-3.5 pb-5" style={{ borderTop: "1px solid var(--hairline)" }}>
+        <div className="px-5 pt-3.5 pb-5 flex gap-2.5" style={{ borderTop: "1px solid var(--hairline)" }}>
+          <button
+            onClick={() => setConfirmingReset(true)}
+            disabled={isPending}
+            className="rounded-xl px-4 py-3.5 font-[var(--font-head)] font-extrabold text-[14px] uppercase tracking-wide min-h-[44px] disabled:opacity-60"
+            style={{ background: "transparent", color: "var(--muted)", border: "1.5px solid var(--hairline)" }}
+          >
+            Resetar
+          </button>
           <button
             onClick={handleEnd}
             disabled={isPending}
-            className="w-full rounded-xl py-3.5 font-[var(--font-head)] font-extrabold text-[14px] uppercase tracking-wide min-h-[44px] disabled:opacity-60"
+            className="flex-1 rounded-xl py-3.5 font-[var(--font-head)] font-extrabold text-[14px] uppercase tracking-wide min-h-[44px] disabled:opacity-60"
             style={{ background: "transparent", color: "var(--red)", border: "1.5px solid var(--red)" }}
           >
             {isPending ? "Encerrando..." : "Encerrar Jogo"}
           </button>
+        </div>
+      )}
+
+      {confirmingReset && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center px-6"
+          style={{ background: "rgba(0,0,0,.6)" }}
+          onClick={() => !isPending && setConfirmingReset(false)}
+        >
+          <div
+            className="w-full max-w-[380px] rounded-2xl p-5 flex flex-col gap-4"
+            style={{ background: "var(--bg2)", border: "1px solid var(--hairline)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="font-[var(--font-head)] font-extrabold text-[18px] uppercase tracking-wide text-center">
+              Resetar o jogo?
+            </div>
+            <div className="text-[13px] text-center" style={{ color: "var(--muted)" }}>
+              O cronômetro, o placar e todos os gols/assistências registrados neste jogo serão apagados. Ele volta para
+              &quot;agendado&quot;, aguardando um novo início. Essa ação não pode ser desfeita.
+            </div>
+            <div className="flex gap-2.5">
+              <button
+                onClick={() => setConfirmingReset(false)}
+                disabled={isPending}
+                className="flex-1 rounded-xl py-3 font-[var(--font-head)] font-extrabold text-[13px] uppercase tracking-wide disabled:opacity-60"
+                style={{ background: "transparent", color: "var(--muted)", border: "1px solid var(--hairline)" }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleReset}
+                disabled={isPending}
+                className="flex-1 rounded-xl py-3 font-[var(--font-head)] font-extrabold text-[13px] uppercase tracking-wide disabled:opacity-60"
+                style={{ background: "var(--red)", color: "#1a0a0a" }}
+              >
+                {isPending ? "Resetando..." : "Resetar"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

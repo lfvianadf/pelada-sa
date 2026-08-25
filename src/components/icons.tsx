@@ -119,3 +119,13 @@ export function IconEdit({ size = 18, color = "currentColor" }: IconProps) {
     </svg>
   );
 }
+
+export function IconDownload({ size = 18, color = "currentColor" }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3v13" />
+      <path d="M7 11l5 5 5-5" />
+      <path d="M4 20h16" />
+    </svg>
+  );
+}

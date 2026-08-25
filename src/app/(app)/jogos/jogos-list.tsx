@@ -1,12 +1,21 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
 import { teamColor, type Standing, type GameRow, type TeamRow } from "@/lib/domain";
 import type { Database } from "@/lib/database.types";
-import { startLive } from "@/lib/actions";
 
 type PeladaFormat = Database["public"]["Enums"]["pelada_format"];
+
+interface LiveEvent {
+  game_id: number;
+  player_id: number;
+  type: string;
+}
+
+interface TeamPlayerRow {
+  team_id: number;
+  player_id: number;
+}
 
 export function JogosList({
   games,
@@ -14,26 +23,35 @@ export function JogosList({
   standings,
   isAdmin,
   format,
+  liveEvents,
+  teamPlayers,
 }: {
   games: GameRow[];
   teams: TeamRow[];
   standings: Standing[];
   isAdmin: boolean;
   format: PeladaFormat;
+  liveEvents: LiveEvent[];
+  teamPlayers: TeamPlayerRow[];
 }) {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
 
   function team(id: number) {
     return teams.find((t) => t.id === id);
   }
 
-  function handleTap(gameId: number, status: string) {
-    if (status !== "agendado" || !isAdmin) return;
-    startTransition(async () => {
-      await startLive(gameId);
+  function liveScore(gameId: number, teamId: number) {
+    const playerIds = new Set(teamPlayers.filter((tp) => tp.team_id === teamId).map((tp) => tp.player_id));
+    return liveEvents.filter((e) => e.game_id === gameId && e.type === "gol" && playerIds.has(e.player_id)).length;
+  }
+
+  function handleTap(status: string) {
+    if (status === "ao vivo") {
       router.push("/ao-vivo");
-    });
+      return;
+    }
+    if (status !== "agendado" || !isAdmin) return;
+    router.push("/ao-vivo");
   }
 
   return (
@@ -50,9 +68,8 @@ export function JogosList({
           return (
             <button
               key={g.id}
-              onClick={() => handleTap(g.id, g.status)}
-              disabled={isPending}
-              className="rounded-2xl px-4 py-3.5 flex flex-col gap-2.5 text-left cursor-pointer disabled:opacity-60"
+              onClick={() => handleTap(g.status)}
+              className="rounded-2xl px-4 py-3.5 flex flex-col gap-2.5 text-left cursor-pointer"
               style={{ background: "var(--bg2)", border: `1px solid ${statusStyle.border}` }}
             >
               <div className="flex justify-center">
@@ -69,7 +86,11 @@ export function JogosList({
                   <div className="text-[13px] font-bold text-center">{a.name}</div>
                 </div>
                 <div className="font-[var(--font-head)] font-extrabold text-[26px] px-2.5">
-                  {g.status === "agendado" ? "vs" : `${g.score_a} × ${g.score_b}`}
+                  {g.status === "agendado"
+                    ? "vs"
+                    : g.status === "ao vivo"
+                      ? `${liveScore(g.id, a.id)} × ${liveScore(g.id, b.id)}`
+                      : `${g.score_a} × ${g.score_b}`}
                 </div>
                 <div className="flex-1 flex flex-col items-center gap-1">
                   <div className="w-2.5 h-2.5 rounded-full" style={{ background: teamColor(b.hue) }} />

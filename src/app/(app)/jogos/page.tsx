@@ -31,6 +31,15 @@ export default async function JogosPage({
       ])
     : [{ data: [] }, { data: [] }, { data: null }];
 
+  const liveGameIds = (games ?? []).filter((g) => g.status === "ao vivo").map((g) => g.id);
+  const teamIds = (teams ?? []).map((t) => t.id);
+  const [{ data: liveEvents }, { data: teamPlayers }] = await Promise.all([
+    liveGameIds.length > 0
+      ? supabase.from("match_events").select("game_id, player_id, type").in("game_id", liveGameIds)
+      : Promise.resolve({ data: [] }),
+    teamIds.length > 0 ? supabase.from("team_players").select("team_id, player_id").in("team_id", teamIds) : Promise.resolve({ data: [] }),
+  ]);
+
   const standings = standingsFor(games ?? [], teams ?? []);
   const hasTeams = (teams ?? []).length > 0;
   const format = peladaRow?.format ?? "todos_contra_todos";
@@ -53,7 +62,15 @@ export default async function JogosPage({
         )}
 
         {peladaId && (
-          <JogosList games={games ?? []} teams={teams ?? []} standings={standings} isAdmin={me.is_admin} format={format} />
+          <JogosList
+            games={games ?? []}
+            teams={teams ?? []}
+            standings={standings}
+            isAdmin={me.is_admin}
+            format={format}
+            liveEvents={liveEvents ?? []}
+            teamPlayers={teamPlayers ?? []}
+          />
         )}
 
         {peladaId && format === "vencedor_fica" && queuedTeams.length > 0 && (

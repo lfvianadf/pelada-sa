@@ -1,12 +1,15 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ScreenBody, BottomCTA } from "@/components/Screen";
 import { Stars } from "@/components/Stars";
 import { Avatar } from "@/components/Avatar";
+import { IconDownload } from "@/components/icons";
 import { teamColor, type PlayerRow, type TeamRow } from "@/lib/domain";
 import { renameTeam, swapPlayers, confirmTeams } from "@/lib/actions";
+import { exportElementAsPng } from "@/lib/exportPng";
+import { TeamsExportCard } from "./teams-export-card";
 
 interface TeamPlayerRow {
   team_id: number;
@@ -20,18 +23,34 @@ export function SorteioBoard({
   teams,
   teamPlayers,
   players,
+  hasGames,
 }: {
   peladaId: number;
   teams: TeamRow[];
   teamPlayers: TeamPlayerRow[];
   players: PlayerRow[];
+  hasGames: boolean;
 }) {
   const router = useRouter();
   const [names, setNames] = useState<Record<number, string>>(Object.fromEntries(teams.map((t) => [t.id, t.name])));
   const [assignments, setAssignments] = useState<TeamPlayerRow[]>(teamPlayers);
   const [openTeamId, setOpenTeamId] = useState<number | null>(teams[0]?.id ?? null);
   const [error, setError] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const exportRef = useRef<HTMLDivElement>(null);
+
+  async function handleExport() {
+    if (!exportRef.current) return;
+    setIsExporting(true);
+    try {
+      await exportElementAsPng(exportRef.current, "times-sorteados.png");
+    } catch {
+      setError("Não foi possível gerar a imagem.");
+    } finally {
+      setIsExporting(false);
+    }
+  }
 
   const [swapStep, setSwapStep] = useState<SwapStep>("closed");
   const [swapPlayerId, setSwapPlayerId] = useState<number | null>(null);
@@ -110,6 +129,16 @@ export function SorteioBoard({
   return (
     <>
       <ScreenBody className="pb-3 gap-3">
+        <button
+          onClick={handleExport}
+          disabled={isExporting}
+          className="flex items-center justify-center gap-2 rounded-xl py-3 font-[var(--font-head)] font-extrabold text-[12px] uppercase tracking-wide min-h-[44px] disabled:opacity-60"
+          style={{ background: "var(--bg2)", border: "1px solid var(--hairline)", color: "var(--text)" }}
+        >
+          <IconDownload size={16} />
+          {isExporting ? "Gerando imagem..." : "Exportar PNG"}
+        </button>
+
         {teams.map((t) => {
           const color = teamColor(t.hue);
           const teamPlayerIds = teamPlayerIdsOf(t.id);
@@ -171,16 +200,18 @@ export function SorteioBoard({
           </div>
         )}
       </ScreenBody>
-      <BottomCTA>
-        <button
-          onClick={handleConfirm}
-          disabled={isPending}
-          className="w-full rounded-xl py-4 font-[var(--font-head)] font-extrabold text-[15px] uppercase tracking-wide min-h-[44px] disabled:opacity-60"
-          style={{ background: "var(--gold)", color: "#141414" }}
-        >
-          {isPending ? "Confirmando..." : "Confirmar Times e Gerar Jogos"}
-        </button>
-      </BottomCTA>
+      {!hasGames && (
+        <BottomCTA>
+          <button
+            onClick={handleConfirm}
+            disabled={isPending}
+            className="w-full rounded-xl py-4 font-[var(--font-head)] font-extrabold text-[15px] uppercase tracking-wide min-h-[44px] disabled:opacity-60"
+            style={{ background: "var(--gold)", color: "#141414" }}
+          >
+            {isPending ? "Confirmando..." : "Confirmar Times e Gerar Jogos"}
+          </button>
+        </BottomCTA>
+      )}
 
       {swapStep !== "closed" && swapPlayerId !== null && (
         <div className="fixed inset-0 z-50 flex items-end justify-center" style={{ background: "rgba(0,0,0,.6)" }} onClick={closeSwap}>
@@ -245,6 +276,18 @@ export function SorteioBoard({
           </div>
         </div>
       )}
+
+      <div style={{ position: "fixed", top: 0, left: "-9999px", pointerEvents: "none" }}>
+        <div ref={exportRef}>
+          <TeamsExportCard
+            teams={teams}
+            names={names}
+            teamPlayerIdsOf={teamPlayerIdsOf}
+            playerName={playerName}
+            playerStars={playerStars}
+          />
+        </div>
+      </div>
     </>
   );
 }
