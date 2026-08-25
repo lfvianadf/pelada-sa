@@ -1,6 +1,6 @@
 export function Screen({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex flex-col min-h-dvh max-w-[480px] mx-auto w-full" style={{ background: "var(--bg)" }}>
+    <div className="flex flex-col h-dvh max-w-[480px] mx-auto w-full overflow-hidden" style={{ background: "var(--bg)" }}>
       {children}
     </div>
   );

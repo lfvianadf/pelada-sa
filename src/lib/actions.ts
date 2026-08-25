@@ -19,6 +19,7 @@ export async function createPelada(
   date: string,
   numTeams: number,
   durationMinutes: number,
+  presentIds: number[],
 ): Promise<ActionResult & { peladaId?: number }> {
   const check = await requireAdmin();
   if ("error" in check) return check;
@@ -29,8 +30,28 @@ export async function createPelada(
     .select("id")
     .single();
   if (error) return { error: error.message };
+
+  if (presentIds.length > 0) {
+    const { error: presenceErr } = await supabase
+      .from("pelada_presence")
+      .insert(presentIds.map((playerId) => ({ pelada_id: data.id, player_id: playerId })));
+    if (presenceErr) return { error: presenceErr.message };
+  }
+
   revalidatePath("/admin/nova-pelada");
   return { peladaId: data.id };
+}
+
+export async function deletePelada(peladaId: number): Promise<ActionResult> {
+  const check = await requireAdmin();
+  if ("error" in check) return check;
+  const supabase = await createClient();
+  const { error } = await supabase.from("peladas").delete().eq("id", peladaId);
+  if (error) return { error: error.message };
+  revalidatePath("/jogos");
+  revalidatePath("/admin/nova-pelada");
+  revalidatePath("/dashboard");
+  return {};
 }
 
 export async function updatePeladaDuration(peladaId: number, durationMinutes: number): Promise<ActionResult> {
@@ -45,7 +66,6 @@ export async function updatePeladaDuration(peladaId: number, durationMinutes: nu
 }
 
 export async function createGuestPlayer(
-  peladaId: number,
   name: string,
   position: Position,
 ): Promise<ActionResult & { playerId?: number }> {
@@ -59,11 +79,6 @@ export async function createGuestPlayer(
     .select("id")
     .single();
   if (error) return { error: error.message };
-
-  const { error: presenceErr } = await supabase
-    .from("pelada_presence")
-    .upsert({ pelada_id: peladaId, player_id: data.id });
-  if (presenceErr) return { error: presenceErr.message };
 
   revalidatePath("/admin/nova-pelada");
   return { playerId: data.id };

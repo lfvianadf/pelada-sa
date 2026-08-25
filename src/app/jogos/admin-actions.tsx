@@ -5,7 +5,7 @@ export function AdminActions({ peladaId, hasTeams }: { peladaId: number | null; 
   return (
     <div className="flex flex-wrap gap-2.5">
       <Link
-        href="/admin/nova-pelada?new=1"
+        href="/admin/nova-pelada"
         className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 font-[var(--font-head)] font-extrabold text-[12px] uppercase tracking-wide min-h-[44px]"
         style={{ background: "var(--bg2)", border: "1px solid var(--bgold)", color: "var(--gold)" }}
       >

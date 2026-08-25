@@ -38,7 +38,9 @@ export default async function JogosPage({
     <Screen>
       <TopBar title="Jogos do Dia" />
       <ScreenBody>
-        {(peladas ?? []).length > 0 && <PeladaSelector peladas={peladas ?? []} selectedId={peladaId ?? null} />}
+        {(peladas ?? []).length > 0 && (
+          <PeladaSelector peladas={peladas ?? []} selectedId={peladaId ?? null} isAdmin={me.is_admin} />
+        )}
 
         {me.is_admin && <AdminActions peladaId={peladaId ?? null} hasTeams={hasTeams} />}
 

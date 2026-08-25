@@ -8,14 +8,7 @@ import { Avatar } from "@/components/Avatar";
 import { IconPlus } from "@/components/icons";
 import type { Position } from "@/lib/types";
 import type { PlayerRow } from "@/lib/domain";
-import {
-  createPelada,
-  createGuestPlayer,
-  setPresence,
-  updatePeladaNumTeams,
-  updatePeladaDuration,
-  sortear,
-} from "@/lib/actions";
+import { createPelada, createGuestPlayer, sortear } from "@/lib/actions";
 
 const DURATION_PRESETS = [2, 7, 10];
 const POSITIONS: Position[] = ["Qualquer", "Goleiro", "Zagueiro", "Meio-campo", "Atacante"];
@@ -60,27 +53,22 @@ function StepIndicator({ step }: { step: Step }) {
 
 export function NovaPeladaForm({
   players: initialPlayers,
-  initialPeladaId,
   initialDate,
   initialNumTeams,
   initialDurationMinutes,
-  initialPresentIds,
 }: {
   players: PlayerRow[];
-  initialPeladaId: number | null;
   initialDate: string;
   initialNumTeams: number;
   initialDurationMinutes: number;
-  initialPresentIds: number[];
 }) {
   const router = useRouter();
   const [step, setStep] = useState<Step>(1);
-  const [peladaId, setPeladaId] = useState(initialPeladaId);
   const [date, setDate] = useState(initialDate);
   const [numTeams, setNumTeams] = useState(initialNumTeams);
   const [durationMinutes, setDurationMinutes] = useState(initialDurationMinutes);
   const [players, setPlayers] = useState<PlayerRow[]>(initialPlayers);
-  const [presentIds, setPresentIds] = useState<number[]>(initialPresentIds);
+  const [presentIds, setPresentIds] = useState<number[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -88,50 +76,15 @@ export function NovaPeladaForm({
   const [guestName, setGuestName] = useState("");
   const [guestPosition, setGuestPosition] = useState<Position>("Qualquer");
 
-  async function ensurePeladaId(): Promise<number | null> {
-    if (peladaId) return peladaId;
-    const result = await createPelada(date, numTeams, durationMinutes);
-    if (result.error || !result.peladaId) {
-      setError(result.error ?? "Erro ao criar pelada.");
-      return null;
-    }
-    setPeladaId(result.peladaId);
-    return result.peladaId;
-  }
-
-  function handleCreatePelada() {
-    setError(null);
-    startTransition(async () => {
-      const id = await ensurePeladaId();
-      if (!id) return;
-      setStep(2);
-    });
-  }
-
-  function handleDurationChange(minutes: number) {
-    if (minutes < 1 || minutes > 90) return;
-    setDurationMinutes(minutes);
-    if (peladaId) {
-      startTransition(async () => {
-        await updatePeladaDuration(peladaId, minutes);
-      });
-    }
-  }
-
   function handleToggle(playerId: number) {
-    if (!peladaId) return;
-    const present = presentIds.includes(playerId);
-    setPresentIds((prev) => (present ? prev.filter((id) => id !== playerId) : [...prev, playerId]));
-    startTransition(async () => {
-      await setPresence(peladaId, playerId, !present);
-    });
+    setPresentIds((prev) => (prev.includes(playerId) ? prev.filter((id) => id !== playerId) : [...prev, playerId]));
   }
 
   function handleCreateGuest() {
-    if (!peladaId || !guestName.trim()) return;
+    if (!guestName.trim()) return;
     setError(null);
     startTransition(async () => {
-      const result = await createGuestPlayer(peladaId, guestName, guestPosition);
+      const result = await createGuestPlayer(guestName, guestPosition);
       if (result.error || !result.playerId) {
         setError(result.error ?? "Erro ao cadastrar jogador.");
         return;
@@ -150,20 +103,20 @@ export function NovaPeladaForm({
   function handleNumTeamsChange(n: number) {
     if (n < 2 || n > 5) return;
     setNumTeams(n);
-    if (peladaId) {
-      startTransition(async () => {
-        await updatePeladaNumTeams(peladaId, n);
-      });
-    }
   }
 
   function handleSortear() {
-    if (!peladaId) return;
     setError(null);
     startTransition(async () => {
-      const result = await sortear(peladaId);
-      if (result.error) {
-        setError(result.error);
+      const createResult = await createPelada(date, numTeams, durationMinutes, presentIds);
+      if (createResult.error || !createResult.peladaId) {
+        setError(createResult.error ?? "Erro ao criar pelada.");
+        return;
+      }
+      const peladaId = createResult.peladaId;
+      const sortResult = await sortear(peladaId);
+      if (sortResult.error) {
+        setError(sortResult.error);
         return;
       }
       router.push(`/admin/sorteio?pelada=${peladaId}`);
@@ -197,7 +150,7 @@ export function NovaPeladaForm({
                 {DURATION_PRESETS.map((min) => (
                   <button
                     key={min}
-                    onClick={() => handleDurationChange(min)}
+                    onClick={() => setDurationMinutes(min)}
                     className="flex-1 rounded-xl py-3 font-[var(--font-head)] font-extrabold text-[15px]"
                     style={{
                       background: durationMinutes === min ? "var(--gold)" : "var(--bg2)",
@@ -214,7 +167,7 @@ export function NovaPeladaForm({
                 style={{ background: "var(--bg2)", border: "1px solid var(--hairline)" }}
               >
                 <button
-                  onClick={() => handleDurationChange(Math.max(1, durationMinutes - 1))}
+                  onClick={() => setDurationMinutes((d) => Math.max(1, d - 1))}
                   className="w-10 h-10 rounded-[10px] text-[20px]"
                   style={{ background: "var(--bg3)", color: "var(--text)" }}
                 >
@@ -222,7 +175,7 @@ export function NovaPeladaForm({
                 </button>
                 <div className="font-[var(--font-head)] font-extrabold text-[18px]">{durationMinutes} min</div>
                 <button
-                  onClick={() => handleDurationChange(Math.min(90, durationMinutes + 1))}
+                  onClick={() => setDurationMinutes((d) => Math.min(90, d + 1))}
                   className="w-10 h-10 rounded-[10px] text-[20px]"
                   style={{ background: "var(--bg3)", color: "var(--text)" }}
                 >
@@ -371,12 +324,12 @@ export function NovaPeladaForm({
           )}
           {step === 1 && (
             <button
-              onClick={handleCreatePelada}
-              disabled={isPending || !date}
+              onClick={() => setStep(2)}
+              disabled={!date}
               className="flex-1 rounded-xl py-4 font-[var(--font-head)] font-extrabold text-[16px] uppercase tracking-wider disabled:opacity-40 min-h-[44px]"
               style={{ background: "var(--gold)", color: "#141414", boxShadow: "0 8px 24px oklch(0.80 0.16 86 / .25)" }}
             >
-              {isPending ? "Salvando..." : "Próximo"}
+              Próximo
             </button>
           )}
           {step === 2 && (
