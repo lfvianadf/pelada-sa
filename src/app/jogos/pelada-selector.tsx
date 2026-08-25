@@ -20,6 +20,7 @@ export function PeladaSelector({
 }) {
   const router = useRouter();
   const [confirmingId, setConfirmingId] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const confirmingPelada = peladas.find((p) => p.id === confirmingId) ?? null;
@@ -27,8 +28,13 @@ export function PeladaSelector({
   function handleDelete() {
     if (confirmingId === null) return;
     const id = confirmingId;
+    setError(null);
     startTransition(async () => {
-      await deletePelada(id);
+      const result = await deletePelada(id);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
       setConfirmingId(null);
       if (id === selectedId) {
         router.push("/jogos");
@@ -87,6 +93,11 @@ export function PeladaSelector({
               A pelada de <strong style={{ color: "var(--text)" }}>{formatDate(confirmingPelada.date)}</strong> e todos os
               times, jogos e eventos vinculados a ela serão apagados. Essa ação não pode ser desfeita.
             </div>
+            {error && (
+              <div className="text-[12px] font-semibold text-center" style={{ color: "var(--red)" }}>
+                {error}
+              </div>
+            )}
             <div className="flex gap-2.5">
               <button
                 onClick={() => setConfirmingId(null)}

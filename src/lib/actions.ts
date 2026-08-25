@@ -46,8 +46,9 @@ export async function deletePelada(peladaId: number): Promise<ActionResult> {
   const check = await requireAdmin();
   if ("error" in check) return check;
   const supabase = await createClient();
-  const { error } = await supabase.from("peladas").delete().eq("id", peladaId);
+  const { data, error } = await supabase.from("peladas").delete().eq("id", peladaId).select("id");
   if (error) return { error: error.message };
+  if (!data || data.length === 0) return { error: "Não foi possível excluir a pelada." };
   revalidatePath("/jogos");
   revalidatePath("/admin/nova-pelada");
   revalidatePath("/dashboard");

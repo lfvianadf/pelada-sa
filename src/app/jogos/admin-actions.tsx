@@ -1,33 +1,37 @@
 import Link from "next/link";
-import { IconPlus, IconUsers } from "@/components/icons";
+import { IconPlus, IconUsers, IconLink } from "@/components/icons";
 
 export function AdminActions({ peladaId, hasTeams }: { peladaId: number | null; hasTeams: boolean }) {
   return (
-    <div className="flex flex-wrap gap-2.5">
+    <div className="flex gap-2.5">
       <Link
         href="/admin/nova-pelada"
-        className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 font-[var(--font-head)] font-extrabold text-[12px] uppercase tracking-wide min-h-[44px]"
+        title="Nova Pelada"
+        aria-label="Nova Pelada"
+        className="w-11 h-11 flex items-center justify-center rounded-xl shrink-0"
         style={{ background: "var(--bg2)", border: "1px solid var(--bgold)", color: "var(--gold)" }}
       >
-        <IconPlus size={16} />
-        Nova Pelada
+        <IconPlus size={18} />
       </Link>
       {peladaId && hasTeams && (
         <Link
           href={`/admin/sorteio?pelada=${peladaId}`}
-          className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 font-[var(--font-head)] font-extrabold text-[12px] uppercase tracking-wide min-h-[44px]"
+          title="Configurar Times"
+          aria-label="Configurar Times"
+          className="w-11 h-11 flex items-center justify-center rounded-xl shrink-0"
           style={{ background: "var(--bg2)", border: "1px solid var(--hairline)", color: "var(--text)" }}
         >
-          <IconUsers size={16} />
-          Configurar Times
+          <IconUsers size={18} />
         </Link>
       )}
       <Link
         href="/admin/vincular"
-        className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 font-[var(--font-head)] font-extrabold text-[12px] uppercase tracking-wide min-h-[44px]"
+        title="Vincular Contas"
+        aria-label="Vincular Contas"
+        className="w-11 h-11 flex items-center justify-center rounded-xl shrink-0"
         style={{ background: "var(--bg2)", border: "1px solid var(--hairline)", color: "var(--text)" }}
       >
-        Vincular Contas
+        <IconLink size={18} />
       </Link>
     </div>
   );
