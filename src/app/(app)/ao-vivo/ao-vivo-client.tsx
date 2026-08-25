@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { teamColor, fmtClock, type GameRow, type PlayerRow, type TeamRow, type MatchEventRow } from "@/lib/domain";
-import { recordEvent, endLive } from "@/lib/actions";
+import { recordEvent, endLive, resolveVencedorFicaTie } from "@/lib/actions";
 
 type Step = "closed" | "team" | "scorer" | "assist";
 
@@ -215,6 +215,7 @@ export function AoVivoClient({
   const [step, setStep] = useState<Step>("closed");
   const [side, setSide] = useState<"A" | "B" | null>(null);
   const [scorerId, setScorerId] = useState<number | null>(null);
+  const [tieInfo, setTieInfo] = useState<{ peladaId: number } | null>(null);
 
   useEffect(() => {
     if (!game.started_at) return;
@@ -274,7 +275,19 @@ export function AoVivoClient({
 
   function handleEnd() {
     startTransition(async () => {
-      await endLive(game.id);
+      const result = await endLive(game.id);
+      if (result.tie && result.peladaId) {
+        setTieInfo({ peladaId: result.peladaId });
+        return;
+      }
+      router.push("/jogos");
+    });
+  }
+
+  function handleResolveTie(stayingTeamId: number) {
+    if (!tieInfo) return;
+    startTransition(async () => {
+      await resolveVencedorFicaTie(tieInfo.peladaId, stayingTeamId, game.id);
       router.push("/jogos");
     });
   }
@@ -361,6 +374,41 @@ export function AoVivoClient({
         scorer={scorer}
         isPending={isPending}
       />
+
+      {tieInfo && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center" style={{ background: "rgba(0,0,0,.6)" }}>
+          <div
+            className="w-full max-w-[480px] rounded-t-[28px] p-5 pb-8 flex flex-col gap-4"
+            style={{ background: "var(--bg)", border: "1px solid var(--hairline)", borderBottom: "none" }}
+          >
+            <div className="w-10 h-1 rounded-full mx-auto" style={{ background: "var(--hairline)" }} />
+            <div className="font-[var(--font-head)] font-extrabold text-[18px] uppercase tracking-wide text-center">
+              Empate! Qual time fica?
+            </div>
+            <div className="text-center text-[13px]" style={{ color: "var(--muted)" }}>
+              O time escolhido continua em quadra contra o próximo da fila.
+            </div>
+            <div className="flex flex-col gap-2.5">
+              <button
+                onClick={() => handleResolveTie(teamA.id)}
+                disabled={isPending}
+                className="rounded-2xl py-4 font-[var(--font-head)] font-extrabold text-[16px] uppercase tracking-wide min-h-[44px] disabled:opacity-60"
+                style={{ background: "var(--bg2)", border: `1.5px solid ${teamColor(teamA.hue)}`, color: teamColor(teamA.hue) }}
+              >
+                {teamA.name}
+              </button>
+              <button
+                onClick={() => handleResolveTie(teamB.id)}
+                disabled={isPending}
+                className="rounded-2xl py-4 font-[var(--font-head)] font-extrabold text-[16px] uppercase tracking-wide min-h-[44px] disabled:opacity-60"
+                style={{ background: "var(--bg2)", border: `1.5px solid ${teamColor(teamB.hue)}`, color: teamColor(teamB.hue) }}
+              >
+                {teamB.name}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

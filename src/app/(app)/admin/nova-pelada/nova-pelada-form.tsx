@@ -8,7 +8,10 @@ import { Avatar } from "@/components/Avatar";
 import { IconPlus } from "@/components/icons";
 import type { Position } from "@/lib/types";
 import type { PlayerRow } from "@/lib/domain";
+import type { Database } from "@/lib/database.types";
 import { createPelada, createGuestPlayer, sortear } from "@/lib/actions";
+
+type PeladaFormat = Database["public"]["Enums"]["pelada_format"];
 
 const DURATION_PRESETS = [2, 7, 10];
 const POSITIONS: Position[] = ["Qualquer", "Goleiro", "Zagueiro", "Meio-campo", "Atacante"];
@@ -67,6 +70,7 @@ export function NovaPeladaForm({
   const [date, setDate] = useState(initialDate);
   const [numTeams, setNumTeams] = useState(initialNumTeams);
   const [durationMinutes, setDurationMinutes] = useState(initialDurationMinutes);
+  const [format, setFormat] = useState<PeladaFormat>("todos_contra_todos");
   const [players, setPlayers] = useState<PlayerRow[]>(initialPlayers);
   const [presentIds, setPresentIds] = useState<number[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -108,7 +112,7 @@ export function NovaPeladaForm({
   function handleSortear() {
     setError(null);
     startTransition(async () => {
-      const createResult = await createPelada(date, numTeams, durationMinutes, presentIds);
+      const createResult = await createPelada(date, numTeams, durationMinutes, presentIds, format);
       if (createResult.error || !createResult.peladaId) {
         setError(createResult.error ?? "Erro ao criar pelada.");
         return;
@@ -301,6 +305,48 @@ export function NovaPeladaForm({
             </div>
             <div className="text-center text-[12px]" style={{ color: "var(--muted)" }}>
               {presentIds.length} jogadores presentes serão distribuídos por estrelas (snake draft).
+            </div>
+
+            <span className="text-[10px] font-bold uppercase tracking-wide mt-2" style={{ color: "var(--muted)" }}>
+              Formato dos jogos
+            </span>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => setFormat("todos_contra_todos")}
+                className="rounded-xl p-3.5 text-left"
+                style={{
+                  background: "var(--bg2)",
+                  border: `1.5px solid ${format === "todos_contra_todos" ? "var(--gold)" : "var(--hairline)"}`,
+                }}
+              >
+                <div
+                  className="font-[var(--font-head)] font-extrabold text-[14px] uppercase tracking-wide"
+                  style={{ color: format === "todos_contra_todos" ? "var(--gold)" : "var(--text)" }}
+                >
+                  Todos contra todos
+                </div>
+                <div className="text-[12px] mt-0.5" style={{ color: "var(--muted)" }}>
+                  Cada time enfrenta todos os outros uma vez.
+                </div>
+              </button>
+              <button
+                onClick={() => setFormat("vencedor_fica")}
+                className="rounded-xl p-3.5 text-left"
+                style={{
+                  background: "var(--bg2)",
+                  border: `1.5px solid ${format === "vencedor_fica" ? "var(--gold)" : "var(--hairline)"}`,
+                }}
+              >
+                <div
+                  className="font-[var(--font-head)] font-extrabold text-[14px] uppercase tracking-wide"
+                  style={{ color: format === "vencedor_fica" ? "var(--gold)" : "var(--text)" }}
+                >
+                  Vencedor fica
+                </div>
+                <div className="text-[12px] mt-0.5" style={{ color: "var(--muted)" }}>
+                  Quem vence continua jogando contra o próximo time da fila; quem perde vai pro final da fila.
+                </div>
+              </button>
             </div>
           </div>
         )}

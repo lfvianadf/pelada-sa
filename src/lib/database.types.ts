@@ -149,6 +149,7 @@ export type Database = {
           created_at: string
           date: string
           duration_minutes: number
+          format: Database["public"]["Enums"]["pelada_format"]
           id: number
           num_teams: number
         }
@@ -156,6 +157,7 @@ export type Database = {
           created_at?: string
           date: string
           duration_minutes?: number
+          format?: Database["public"]["Enums"]["pelada_format"]
           id?: never
           num_teams?: number
         }
@@ -163,6 +165,7 @@ export type Database = {
           created_at?: string
           date?: string
           duration_minutes?: number
+          format?: Database["public"]["Enums"]["pelada_format"]
           id?: never
           num_teams?: number
         }
@@ -285,6 +288,7 @@ export type Database = {
           id: number
           name: string
           pelada_id: number
+          queue_order: number | null
         }
         Insert: {
           created_at?: string
@@ -292,6 +296,7 @@ export type Database = {
           id?: never
           name: string
           pelada_id: number
+          queue_order?: number | null
         }
         Update: {
           created_at?: string
@@ -299,6 +304,7 @@ export type Database = {
           id?: never
           name?: string
           pelada_id?: number
+          queue_order?: number | null
         }
         Relationships: [
           {
@@ -320,6 +326,7 @@ export type Database = {
     Enums: {
       event_type: "gol" | "assistencia"
       game_status: "agendado" | "ao vivo" | "finalizado"
+      pelada_format: "todos_contra_todos" | "vencedor_fica"
       position_type:
         | "Qualquer"
         | "Goleiro"
@@ -457,6 +464,7 @@ export const Constants = {
     Enums: {
       event_type: ["gol", "assistencia"],
       game_status: ["agendado", "ao vivo", "finalizado"],
+      pelada_format: ["todos_contra_todos", "vencedor_fica"],
       position_type: [
         "Qualquer",
         "Goleiro",

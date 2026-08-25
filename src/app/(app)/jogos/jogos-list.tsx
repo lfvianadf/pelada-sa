@@ -3,18 +3,23 @@
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { teamColor, type Standing, type GameRow, type TeamRow } from "@/lib/domain";
+import type { Database } from "@/lib/database.types";
 import { startLive } from "@/lib/actions";
+
+type PeladaFormat = Database["public"]["Enums"]["pelada_format"];
 
 export function JogosList({
   games,
   teams,
   standings,
   isAdmin,
+  format,
 }: {
   games: GameRow[];
   teams: TeamRow[];
   standings: Standing[];
   isAdmin: boolean;
+  format: PeladaFormat;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -83,7 +88,7 @@ export function JogosList({
 
       <div className="flex flex-col gap-2.5">
         <div className="text-[12px] font-bold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
-          Classificação do dia
+          {format === "vencedor_fica" ? "Desempenho do dia" : "Classificação do dia"}
         </div>
         <div className="rounded-xl overflow-hidden" style={{ background: "var(--bg2)", border: "1px solid var(--hairline)" }}>
           <div

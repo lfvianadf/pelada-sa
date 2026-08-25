@@ -23,15 +23,18 @@ export default async function JogosPage({
 
   const peladaId = pelada ? Number(pelada) : peladas?.[0]?.id;
 
-  const [{ data: games }, { data: teams }] = peladaId
+  const [{ data: games }, { data: teams }, { data: peladaRow }] = peladaId
     ? await Promise.all([
         supabase.from("games").select("*").eq("pelada_id", peladaId).order("id"),
-        supabase.from("teams").select("*").eq("pelada_id", peladaId),
+        supabase.from("teams").select("*").eq("pelada_id", peladaId).order("queue_order"),
+        supabase.from("peladas").select("format").eq("id", peladaId).single(),
       ])
-    : [{ data: [] }, { data: [] }];
+    : [{ data: [] }, { data: [] }, { data: null }];
 
   const standings = standingsFor(games ?? [], teams ?? []);
   const hasTeams = (teams ?? []).length > 0;
+  const format = peladaRow?.format ?? "todos_contra_todos";
+  const queuedTeams = (teams ?? []).filter((t) => t.queue_order !== null);
 
   return (
     <ScreenContent>
@@ -50,7 +53,29 @@ export default async function JogosPage({
         )}
 
         {peladaId && (
-          <JogosList games={games ?? []} teams={teams ?? []} standings={standings} isAdmin={me.is_admin} />
+          <JogosList games={games ?? []} teams={teams ?? []} standings={standings} isAdmin={me.is_admin} format={format} />
+        )}
+
+        {peladaId && format === "vencedor_fica" && queuedTeams.length > 0 && (
+          <div className="flex flex-col gap-2.5">
+            <div className="text-[12px] font-bold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
+              Fila de espera
+            </div>
+            <div className="flex flex-col gap-2">
+              {queuedTeams.map((t) => (
+                <div
+                  key={t.id}
+                  className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5"
+                  style={{ background: "var(--bg2)", border: "1px solid var(--hairline)" }}
+                >
+                  <span className="font-[var(--font-head)] font-extrabold text-[13px]" style={{ color: "var(--muted2)" }}>
+                    {t.queue_order}
+                  </span>
+                  <span className="text-[14px] font-bold">{t.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
       </ScreenBody>
     </ScreenContent>

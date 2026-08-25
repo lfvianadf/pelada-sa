@@ -5,6 +5,9 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentPlayer } from "@/lib/auth";
 import { aiSuggestedStars, HUES } from "@/lib/domain";
 import type { Position } from "@/lib/types";
+import type { Database } from "@/lib/database.types";
+
+type PeladaFormat = Database["public"]["Enums"]["pelada_format"];
 
 type ActionResult = { error?: string };
 
@@ -20,13 +23,14 @@ export async function createPelada(
   numTeams: number,
   durationMinutes: number,
   presentIds: number[],
+  format: PeladaFormat,
 ): Promise<ActionResult & { peladaId?: number }> {
   const check = await requireAdmin();
   if ("error" in check) return check;
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("peladas")
-    .insert({ date, num_teams: numTeams, duration_minutes: durationMinutes })
+    .insert({ date, num_teams: numTeams, duration_minutes: durationMinutes, format })
     .select("id")
     .single();
   if (error) return { error: error.message };
@@ -291,20 +295,40 @@ export async function confirmTeams(peladaId: number): Promise<ActionResult> {
   if ("error" in check) return check;
   const supabase = await createClient();
 
-  const { data: teams, error: teamsErr } = await supabase.from("teams").select("id").eq("pelada_id", peladaId);
+  const { data: pelada, error: peladaErr } = await supabase
+    .from("peladas")
+    .select("format")
+    .eq("id", peladaId)
+    .single();
+  if (peladaErr || !pelada) return { error: peladaErr?.message ?? "Pelada não encontrada." };
+
+  const { data: teams, error: teamsErr } = await supabase.from("teams").select("id").eq("pelada_id", peladaId).order("id");
   if (teamsErr) return { error: teamsErr.message };
   if (!teams || teams.length < 2) return { error: "É preciso pelo menos 2 times." };
 
   await supabase.from("games").delete().eq("pelada_id", peladaId);
 
-  const gameRows: { pelada_id: number; team_a_id: number; team_b_id: number }[] = [];
-  for (let i = 0; i < teams.length; i++) {
-    for (let j = i + 1; j < teams.length; j++) {
-      gameRows.push({ pelada_id: peladaId, team_a_id: teams[i].id, team_b_id: teams[j].id });
+  if (pelada.format === "vencedor_fica") {
+    const [first, second, ...rest] = teams;
+    const { error: gameErr } = await supabase
+      .from("games")
+      .insert({ pelada_id: peladaId, team_a_id: first.id, team_b_id: second.id });
+    if (gameErr) return { error: gameErr.message };
+
+    await supabase.from("teams").update({ queue_order: null }).eq("pelada_id", peladaId);
+    for (let i = 0; i < rest.length; i++) {
+      await supabase.from("teams").update({ queue_order: i + 1 }).eq("id", rest[i].id);
     }
+  } else {
+    const gameRows: { pelada_id: number; team_a_id: number; team_b_id: number }[] = [];
+    for (let i = 0; i < teams.length; i++) {
+      for (let j = i + 1; j < teams.length; j++) {
+        gameRows.push({ pelada_id: peladaId, team_a_id: teams[i].id, team_b_id: teams[j].id });
+      }
+    }
+    const { error } = await supabase.from("games").insert(gameRows);
+    if (error) return { error: error.message };
   }
-  const { error } = await supabase.from("games").insert(gameRows);
-  if (error) return { error: error.message };
 
   revalidatePath("/jogos");
   revalidatePath("/admin/sorteio");
@@ -340,14 +364,14 @@ export async function recordEvent(
   return {};
 }
 
-export async function endLive(gameId: number): Promise<ActionResult> {
+export async function endLive(gameId: number): Promise<ActionResult & { tie?: boolean; peladaId?: number }> {
   const check = await requireAdmin();
   if ("error" in check) return check;
   const supabase = await createClient();
 
   const { data: game, error: gameErr } = await supabase
     .from("games")
-    .select("id, team_a_id, team_b_id")
+    .select("id, pelada_id, team_a_id, team_b_id")
     .eq("id", gameId)
     .single();
   if (gameErr || !game) return { error: gameErr?.message ?? "Jogo não encontrado." };
@@ -402,6 +426,80 @@ export async function endLive(gameId: number): Promise<ActionResult> {
   revalidatePath("/jogos");
   revalidatePath("/dashboard");
   revalidatePath("/perfil");
+
+  const { data: pelada } = await supabase.from("peladas").select("format").eq("id", game.pelada_id).single();
+  if (pelada?.format === "vencedor_fica") {
+    if (scoreA === scoreB) {
+      return { tie: true, peladaId: game.pelada_id };
+    }
+    const winnerTeamId = scoreA > scoreB ? game.team_a_id : game.team_b_id;
+    const loserTeamId = scoreA > scoreB ? game.team_b_id : game.team_a_id;
+    const nextResult = await advanceVencedorFicaQueue(game.pelada_id, winnerTeamId, loserTeamId);
+    if (nextResult.error) return { error: nextResult.error };
+  }
+
+  return {};
+}
+
+async function advanceVencedorFicaQueue(
+  peladaId: number,
+  winnerTeamId: number,
+  loserTeamId: number,
+): Promise<ActionResult> {
+  const supabase = await createClient();
+
+  const { data: queue, error: queueErr } = await supabase
+    .from("teams")
+    .select("id, queue_order")
+    .eq("pelada_id", peladaId)
+    .not("queue_order", "is", null)
+    .order("queue_order", { ascending: true });
+  if (queueErr) return { error: queueErr.message };
+
+  if (!queue || queue.length === 0) {
+    await supabase.from("teams").update({ queue_order: null }).eq("id", loserTeamId);
+    return {};
+  }
+
+  const nextTeam = queue[0];
+  const { error: gameErr } = await supabase
+    .from("games")
+    .insert({ pelada_id: peladaId, team_a_id: winnerTeamId, team_b_id: nextTeam.id });
+  if (gameErr) return { error: gameErr.message };
+
+  await supabase.from("teams").update({ queue_order: null }).eq("id", nextTeam.id);
+
+  const rest = queue.slice(1);
+  for (let i = 0; i < rest.length; i++) {
+    await supabase.from("teams").update({ queue_order: i + 1 }).eq("id", rest[i].id);
+  }
+  await supabase.from("teams").update({ queue_order: rest.length + 1 }).eq("id", loserTeamId);
+
+  return {};
+}
+
+export async function resolveVencedorFicaTie(peladaId: number, stayingTeamId: number, gameId: number): Promise<ActionResult> {
+  const check = await requireAdmin();
+  if ("error" in check) return check;
+  const supabase = await createClient();
+
+  const { data: game, error: gameErr } = await supabase
+    .from("games")
+    .select("team_a_id, team_b_id")
+    .eq("id", gameId)
+    .single();
+  if (gameErr || !game) return { error: gameErr?.message ?? "Jogo não encontrado." };
+
+  if (stayingTeamId !== game.team_a_id && stayingTeamId !== game.team_b_id) {
+    return { error: "Time inválido para esse jogo." };
+  }
+  const otherTeamId = stayingTeamId === game.team_a_id ? game.team_b_id : game.team_a_id;
+
+  const result = await advanceVencedorFicaQueue(peladaId, stayingTeamId, otherTeamId);
+  if (result.error) return result;
+
+  revalidatePath("/ao-vivo");
+  revalidatePath("/jogos");
   return {};
 }
 
