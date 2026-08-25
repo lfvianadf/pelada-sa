@@ -6,6 +6,10 @@ export function Screen({ children }: { children: React.ReactNode }) {
   );
 }
 
+export function ScreenContent({ children }: { children: React.ReactNode }) {
+  return <div className="flex flex-col flex-1 min-h-0 overflow-hidden">{children}</div>;
+}
+
 export function ScreenBody({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return <div className={`flex-1 min-h-0 overflow-y-auto px-5 py-5 flex flex-col gap-5 ${className}`}>{children}</div>;
 }

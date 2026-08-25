@@ -1,8 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentPlayer } from "@/lib/auth";
-import { Screen } from "@/components/Screen";
-import { NavBar } from "@/components/NavBar";
+import { ScreenContent } from "@/components/Screen";
 import { EstrelasList } from "./estrelas-list";
 
 export default async function EstrelasPage() {
@@ -18,9 +17,8 @@ export default async function EstrelasPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <Screen>
+    <ScreenContent>
       <EstrelasList players={players ?? []} suggestions={suggestions ?? []} />
-      <NavBar isAdmin={me.is_admin} />
-    </Screen>
+    </ScreenContent>
   );
 }

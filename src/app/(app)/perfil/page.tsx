@@ -1,10 +1,9 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentPlayer } from "@/lib/auth";
-import { Screen, ScreenBody } from "@/components/Screen";
+import { ScreenContent, ScreenBody } from "@/components/Screen";
 import { TopBar } from "@/components/TopBar";
 import { Stars } from "@/components/Stars";
-import { NavBar } from "@/components/NavBar";
 
 function StatCard({ label, value, color, gold }: { label: string; value: number; color?: string; gold?: boolean }) {
   return (
@@ -77,7 +76,7 @@ export default async function PerfilPage() {
   }
 
   return (
-    <Screen>
+    <ScreenContent>
       <TopBar title="Meu Perfil" />
       <ScreenBody>
         <div className="flex flex-col items-center gap-2.5">
@@ -130,7 +129,6 @@ export default async function PerfilPage() {
           )}
         </div>
       </ScreenBody>
-      <NavBar isAdmin={me.is_admin} />
-    </Screen>
+    </ScreenContent>
   );
 }

@@ -2,10 +2,9 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentPlayer } from "@/lib/auth";
 import { standingsFor, fmtClock } from "@/lib/domain";
-import { Screen, ScreenBody } from "@/components/Screen";
+import { ScreenContent, ScreenBody } from "@/components/Screen";
 import { TopBar } from "@/components/TopBar";
 import { Avatar } from "@/components/Avatar";
-import { NavBar } from "@/components/NavBar";
 import { PeriodTabs } from "./period-tabs";
 
 export default async function DashboardPage() {
@@ -67,7 +66,7 @@ export default async function DashboardPage() {
   ];
 
   return (
-    <Screen>
+    <ScreenContent>
       <TopBar title="Raio-X da Pelada" />
       <ScreenBody>
         <PeriodTabs />
@@ -165,7 +164,6 @@ export default async function DashboardPage() {
           </div>
         </div>
       </ScreenBody>
-      <NavBar isAdmin={me.is_admin} />
-    </Screen>
+    </ScreenContent>
   );
 }

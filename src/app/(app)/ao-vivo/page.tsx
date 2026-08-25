@@ -1,9 +1,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentPlayer } from "@/lib/auth";
-import { Screen } from "@/components/Screen";
+import { ScreenContent } from "@/components/Screen";
 import { TopBar } from "@/components/TopBar";
-import { NavBar } from "@/components/NavBar";
 import { AoVivoClient } from "./ao-vivo-client";
 import { AoVivoStartList } from "./ao-vivo-start-list";
 
@@ -38,7 +37,7 @@ export default async function AoVivoPage() {
     const { data: teams } = teamIds.length > 0 ? await supabase.from("teams").select("*").in("id", teamIds) : { data: [] };
 
     return (
-      <Screen>
+      <ScreenContent>
         <TopBar title="Registro Ao Vivo" />
         <div className="flex-1 flex flex-col px-5 py-6 gap-4">
           <div className="text-center text-[13px] py-2.5" style={{ color: "var(--muted)" }}>
@@ -48,8 +47,7 @@ export default async function AoVivoPage() {
             <AoVivoStartList scheduled={scheduled} teams={teams ?? []} />
           )}
         </div>
-        <NavBar isAdmin={me.is_admin} />
-      </Screen>
+      </ScreenContent>
     );
   }
 
@@ -71,7 +69,7 @@ export default async function AoVivoPage() {
   const { data: events } = await supabase.from("match_events").select("*").eq("game_id", liveGame.id).order("id");
 
   return (
-    <Screen>
+    <ScreenContent>
       <AoVivoClient
         game={liveGame}
         teamA={teamA!}
@@ -83,7 +81,6 @@ export default async function AoVivoPage() {
         isAdmin={me.is_admin}
         durationMinutes={durationMinutes}
       />
-      <NavBar isAdmin={me.is_admin} />
-    </Screen>
+    </ScreenContent>
   );
 }

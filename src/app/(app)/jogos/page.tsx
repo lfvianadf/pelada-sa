@@ -2,9 +2,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentPlayer } from "@/lib/auth";
 import { standingsFor } from "@/lib/domain";
-import { Screen, ScreenBody } from "@/components/Screen";
+import { ScreenContent, ScreenBody } from "@/components/Screen";
 import { TopBar } from "@/components/TopBar";
-import { NavBar } from "@/components/NavBar";
 import { JogosList } from "./jogos-list";
 import { PeladaSelector } from "./pelada-selector";
 import { AdminActions } from "./admin-actions";
@@ -35,7 +34,7 @@ export default async function JogosPage({
   const hasTeams = (teams ?? []).length > 0;
 
   return (
-    <Screen>
+    <ScreenContent>
       <TopBar title="Jogos do Dia" />
       <ScreenBody>
         {(peladas ?? []).length > 0 && (
@@ -54,7 +53,6 @@ export default async function JogosPage({
           <JogosList games={games ?? []} teams={teams ?? []} standings={standings} isAdmin={me.is_admin} />
         )}
       </ScreenBody>
-      <NavBar isAdmin={me.is_admin} />
-    </Screen>
+    </ScreenContent>
   );
 }

@@ -1,9 +1,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentPlayer } from "@/lib/auth";
-import { Screen } from "@/components/Screen";
+import { ScreenContent } from "@/components/Screen";
 import { TopBar } from "@/components/TopBar";
-import { NavBar } from "@/components/NavBar";
 import { NovaPeladaForm } from "./nova-pelada-form";
 
 export default async function NovaPeladaPage() {
@@ -15,7 +14,7 @@ export default async function NovaPeladaPage() {
   const { data: players } = await supabase.from("players").select("*").order("name");
 
   return (
-    <Screen>
+    <ScreenContent>
       <TopBar title="Nova Pelada" />
       <NovaPeladaForm
         players={players ?? []}
@@ -23,7 +22,6 @@ export default async function NovaPeladaPage() {
         initialNumTeams={3}
         initialDurationMinutes={10}
       />
-      <NavBar isAdmin={me.is_admin} />
-    </Screen>
+    </ScreenContent>
   );
 }

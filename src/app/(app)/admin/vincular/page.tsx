@@ -1,9 +1,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentPlayer } from "@/lib/auth";
-import { Screen } from "@/components/Screen";
+import { ScreenContent } from "@/components/Screen";
 import { TopBar } from "@/components/TopBar";
-import { NavBar } from "@/components/NavBar";
 import { VincularForm } from "./vincular-form";
 
 export default async function VincularPage() {
@@ -18,10 +17,9 @@ export default async function VincularPage() {
   const withoutAccount = (players ?? []).filter((p) => !p.user_id);
 
   return (
-    <Screen>
+    <ScreenContent>
       <TopBar title="Vincular Contas" />
       <VincularForm withAccount={withAccount} withoutAccount={withoutAccount} />
-      <NavBar isAdmin={me.is_admin} />
-    </Screen>
+    </ScreenContent>
   );
 }
