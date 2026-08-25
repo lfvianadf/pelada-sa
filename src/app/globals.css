@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #0d0e10;
+  --bg2: oklch(0.19 0.006 260);
+  --bg3: oklch(0.235 0.009 260);
+  --bgold: oklch(0.55 0.09 85 / 0.32);
+  --gold: oklch(0.80 0.16 86);
+  --green: oklch(0.72 0.17 148);
+  --red: oklch(0.62 0.19 25);
+  --text: oklch(0.96 0.006 90);
+  --muted: oklch(0.62 0.012 90);
+  --muted2: oklch(0.42 0.012 90);
+  --hairline: oklch(1 0 0 / .08);
+  --hairline-soft: oklch(1 0 0 / .05);
+  --font-head: var(--font-barlow-condensed), sans-serif;
+  --font-body: var(--font-manrope), sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(circle at 50% -10%, #16181a 0%, #050506 60%);
+  color: var(--text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: oklch(0.80 0.16 86 / .35);
+}
+
+a {
+  color: var(--gold);
+  text-decoration: none;
+}
+a:hover {
+  color: oklch(0.86 0.14 86);
+}
+
+input, select, button {
+  font-family: var(--font-body);
+}
+
+input::placeholder {
+  color: var(--muted2);
+}
+
+@keyframes esa-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .25; }
+}
+
+.esa-pulse {
+  animation: esa-pulse 1.2s infinite;
+}

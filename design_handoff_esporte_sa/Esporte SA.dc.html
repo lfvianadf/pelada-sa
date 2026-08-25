@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;background:#050506;-webkit-font-smoothing:antialiased}
+  *{box-sizing:border-box}
+  ::selection{background:oklch(0.80 0.16 86 / .35)}
+  a{color:oklch(0.80 0.16 86);text-decoration:none}
+  a:hover{color:oklch(0.86 0.14 86)}
+  input,select,button{font-family:'Manrope',sans-serif}
+  input::placeholder{color:oklch(0.42 0.01 90)}
+  @keyframes esa-pulse{0%,100%{opacity:1}50%{opacity:.25}}
+</style>
+</helmet>
+
+<div style="--bg:#0d0e10;--bg2:oklch(0.19 0.006 260);--bg3:oklch(0.235 0.009 260);--bgold:oklch(0.55 0.09 85 / 0.32);--gold:oklch(0.80 0.16 86);--green:oklch(0.72 0.17 148);--red:oklch(0.62 0.19 25);--text:oklch(0.96 0.006 90);--muted:oklch(0.62 0.012 90);--muted2:oklch(0.42 0.012 90);--head:'Barlow Condensed',sans-serif;--body:'Manrope',sans-serif;min-height:100vh;background:radial-gradient(circle at 50% -10%, #16181a 0%, #050506 60%);font-family:var(--body);color:var(--text);padding:28px 0 60px">
+
+<div style="padding:0 28px 22px;display:flex;align-items:center;gap:14px">
+  <div style="width:44px;height:44px;border-radius:50%;background:var(--bg2);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font:800 15px var(--head);color:var(--gold)">SA</div>
+  <div style="display:flex;flex-direction:column;gap:2px">
+    <div style="font:800 24px/1 var(--head);text-transform:uppercase;letter-spacing:.5px">Esporte <span style="color:var(--gold)">SA</span> — todas as telas</div>
+    <div style="font:600 11px var(--body);letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Pastoral do Esporte · protótipo mobile-first</div>
+  </div>
+</div>
+
+<div style="display:flex;gap:26px;overflow-x:auto;padding:6px 28px 30px">
+
+<!-- ===== 1. LOGIN ===== -->
+<div style="display:flex;flex-direction:column;gap:10px;flex-shrink:0">
+  <div style="display:flex;align-items:center;gap:10px"><span style="font:800 11px var(--head);background:var(--gold);color:#141414;border-radius:6px;padding:3px 8px">01</span><span style="font:700 12px var(--body);letter-spacing:.5px;text-transform:uppercase;color:var(--muted)">Login / Cadastro</span></div>
+  <div style="width:380px;height:800px;border-radius:32px;border:1px solid oklch(1 0 0 / .1);background:var(--bg);box-shadow:0 20px 50px rgba(0,0,0,.6);overflow:hidden;display:flex;flex-direction:column">
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:32px 24px;gap:26px">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+        <div style="width:64px;height:64px;border-radius:50%;background:var(--bg2);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font:800 22px var(--head);color:var(--gold);letter-spacing:1px">SA</div>
+        <div style="font:800 34px/1 var(--head);letter-spacing:1px;text-transform:uppercase">Esporte <span style="color:var(--gold)">SA</span></div>
+        <div style="font:600 11px var(--body);letter-spacing:2px;text-transform:uppercase;color:var(--muted)">Pastoral do Esporte</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--bgold);border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:16px;box-shadow:0 12px 30px rgba(0,0,0,.5)">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+          <div style="width:72px;height:72px;border-radius:50%;border:2px dashed var(--muted2);display:flex;align-items:center;justify-content:center;font:600 9px var(--body);letter-spacing:1px;color:var(--muted2);text-align:center;line-height:1.3">FOTO<br/>PERFIL</div>
+        </div>
+        <label style="display:flex;flex-direction:column;gap:6px">
+          <span style="font:700 10px var(--body);letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Nome</span>
+          <input value="{{ loginName }}" onChange="{{ onLoginNameChange }}" placeholder="Seu nome completo" style="background:var(--bg3);border:1px solid oklch(1 0 0 / .08);border-radius:10px;padding:12px 14px;color:var(--text);font-size:15px;outline:none"/>
+        </label>
+        <label style="display:flex;flex-direction:column;gap:6px">
+          <span style="font:700 10px var(--body);letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Posição preferida (opcional)</span>
+          <select value="{{ loginPosition }}" onChange="{{ onLoginPositionChange }}" style="background:var(--bg3);border:1px solid oklch(1 0 0 / .08);border-radius:10px;padding:12px 14px;color:var(--text);font-size:15px;outline:none">
+            <option value="Qualquer">Qualquer posição</option>
+            <option value="Goleiro">Goleiro</option>
+            <option value="Zagueiro">Zagueiro</option>
+            <option value="Meio-campo">Meio-campo</option>
+            <option value="Atacante">Atacante</option>
+          </select>
+        </label>
+        <button onClick="{{ onLogin }}" style="margin-top:6px;background:var(--gold);color:#141414;border:none;border-radius:10px;padding:15px;font:800 15px var(--head);letter-spacing:1.5px;text-transform:uppercase;cursor:pointer">Entrar</button>
+      </div>
+      <div style="text-align:center;font:500 11px var(--body);color:var(--muted2)">Pelada de sábado às 16h · Campo da Paróquia</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 2. PERFIL ===== -->
+<div style="display:flex;flex-direction:column;gap:10px;flex-shrink:0">
+  <div style="display:flex;align-items:center;gap:10px"><span style="font:800 11px var(--head);background:var(--gold);color:#141414;border-radius:6px;padding:3px 8px">02</span><span style="font:700 12px var(--body);letter-spacing:.5px;text-transform:uppercase;color:var(--muted)">Perfil do Jogador</span></div>
+  <div style="width:380px;height:800px;border-radius:32px;border:1px solid oklch(1 0 0 / .1);background:var(--bg);box-shadow:0 20px 50px rgba(0,0,0,.6);overflow:hidden;display:flex;flex-direction:column">
+    <div style="padding:18px 20px 12px;border-bottom:1px solid oklch(1 0 0 / .06)"><div style="font:800 20px var(--head);letter-spacing:.5px;text-transform:uppercase">Meu Perfil</div></div>
+    <div style="flex:1;overflow-y:auto;padding:22px 20px 28px;display:flex;flex-direction:column;gap:22px">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+        <div style="width:96px;height:96px;border-radius:50%;background:var(--bg2);border:3px solid var(--gold);display:flex;align-items:center;justify-content:center;font:700 11px var(--body);color:var(--muted2)">FOTO</div>
+        <div style="font:800 26px var(--head);text-transform:uppercase;letter-spacing:.5px">{{ me.name }}</div>
+        <div style="font:700 11px var(--body);letter-spacing:1px;text-transform:uppercase;color:var(--gold);background:oklch(0.80 0.16 86 / .12);border:1px solid var(--bgold);border-radius:20px;padding:4px 12px">{{ me.position }}</div>
+        <div style="display:flex;gap:3px;margin-top:4px">
+          <sc-for list="{{ me.starsArr }}" as="s" hint-placeholder-count="5"><span style="font-size:22px;color:{{ s.color }}">★</span></sc-for>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div style="background:var(--bg2);border:1px solid var(--bgold);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:2px">
+          <div style="font:800 32px/1 var(--head);color:var(--gold)">{{ me.goals }}</div><div style="font:700 10px var(--body);letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Gols</div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid oklch(0.72 0.17 148 / .3);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:2px">
+          <div style="font:800 32px/1 var(--head);color:var(--green)">{{ me.assists }}</div><div style="font:700 10px var(--body);letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Assistências</div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid oklch(1 0 0 / .08);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:2px">
+          <div style="font:800 32px/1 var(--head)">{{ me.games }}</div><div style="font:700 10px var(--body);letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Jogos</div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid oklch(1 0 0 / .08);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:2px">
+          <div style="font:800 32px/1 var(--head)">{{ me.wins }}</div><div style="font:700 10px var(--body);letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Vitórias</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font:700 12px var(--body);letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Histórico recente</div>
+        <sc-if value="{{ me.hasHistory }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{ me.history }}" as="h" hint-placeholder-count="3">
+              <div style="background:var(--bg2);border:1px solid oklch(1 0 0 / .07);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:4px">
+                <div style="font:600 12px var(--body);color:var(--muted)">{{ h.date }}</div>
+                <div style="font:700 14px var(--body)">{{ h.result }}</div>
+                <div style="font:600 12px var(--body);color:var(--gold)">{{ h.personal }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ me.noHistory }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:18px;text-align:center;color:var(--muted2);font-size:13px;background:var(--bg2);border-radius:12px;border:1px dashed oklch(1 0 0 / .1)">Nenhuma pelada registrada ainda</div>
+        </sc-if>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 3. ADMIN NOVA PELADA ===== -->
+<div style="display:flex;flex-direction:column;gap:10px;flex-shrink:0">
+  <div style="display:flex;align-items:center;gap:10px"><span style="font:800 11px var(--head);background:var(--gold);color:#141414;border-radius:6px;padding:3px 8px">03</span><span style="font:700 12px var(--body);letter-spacing:.5px;text-transform:uppercase;color:var(--muted)">Admin · Nova Pelada</span></div>
+  <div style="width:380px;height:800px;border-radius:32px;border:1px solid oklch(1 0 0 / .1);background:var(--bg);box-shadow:0 20px 50px rgba(0,0,0,.6);overflow:hidden;display:flex;flex-direction:column">
+    <div style="padding:18px 20px 12px;border-bottom:1px solid oklch(1 0 0 / .06)"><div style="font:800 20px var(--head);letter-spacing:.5px;text-transform:uppercase">Nova Pelada</div></div>
+    <div style="flex:1;overflow-y:auto;padding:18px 20px 24px;display:flex;flex-direction:column;gap:20px">
+      <label style="display:flex;flex-direction:column;gap:6px">
+        <span style="font:700 10px var(--body);letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Data da pelada</span>
+        <input type="date" value="{{ peladaDate }}" onChange="{{ onDateChange }}" style="background:var(--bg2);border:1px solid oklch(1 0 0 / .08);border-radius:10px;padding:12px 14px;color:var(--text);font-size:15px"/>
+      </label>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <span style="font:700 10px var(--body);letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Jogadores presentes</span>
+          <span style="font:800 13px var(--head);color:var(--gold)">{{ presentCount }}/{{ totalPlayers }}</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <sc-for list="{{ presenceRows }}" as="p" hint-placeholder-count="6">
+            <button onClick="{{ p.toggle }}" style="all:unset;display:flex;align-items:center;gap:12px;background:var(--bg2);border:1px solid {{ p.borderColor }};border-radius:12px;padding:11px 14px;cursor:pointer">
+              <div style="width:20px;height:20px;border-radius:6px;border:2px solid {{ p.checkColor }};background:{{ p.checkBg }};flex-shrink:0"></div>
+              <div style="width:34px;height:34px;border-radius:50%;background:var(--bg3);flex-shrink:0"></div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:2px;text-align:left">
+                <div style="font:700 14px var(--body)">{{ p.name }}</div>
+                <div style="font:600 10px var(--body);color:var(--muted)">{{ p.position }}</div>
+              </div>
+              <div style="display:flex;gap:1px"><sc-for list="{{ p.starsArr }}" as="s" hint-placeholder-count="5"><span style="font-size:13px;color:{{ s.color }}">★</span></sc-for></div>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <span style="font:700 10px var(--body);letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Quantidade de times</span>
+        <div style="display:flex;align-items:center;gap:16px;background:var(--bg2);border:1px solid var(--bgold);border-radius:12px;padding:10px 16px;justify-content:space-between">
+          <button onClick="{{ onDecTeams }}" style="width:40px;height:40px;border-radius:10px;background:var(--bg3);border:none;color:var(--text);font-size:20px;cursor:pointer">−</button>
+          <div style="font:800 26px var(--head);color:var(--gold)">{{ numTeams }}</div>
+          <button onClick="{{ onIncTeams }}" style="width:40px;height:40px;border-radius:10px;background:var(--bg3);border:none;color:var(--text);font-size:20px;cursor:pointer">+</button>
+        </div>
+      </div>
+    </div>
+    <div style="padding:14px 20px 18px;background:linear-gradient(180deg, transparent, var(--bg) 30%)">
+      <button onClick="{{ onSortear }}" style="width:100%;background:var(--gold);color:#141414;border:none;border-radius:12px;padding:16px;font:800 16px var(--head);letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;box-shadow:0 8px 24px oklch(0.80 0.16 86 / .25)">Sortear Times</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 4. RESULTADO DO SORTEIO ===== -->
+<div style="display:flex;flex-direction:column;gap:10px;flex-shrink:0">
+  <div style="display:flex;align-items:center;gap:10px"><span style="font:800 11px var(--head);background:var(--gold);color:#141414;border-radius:6px;padding:3px 8px">04</span><span style="font:700 12px var(--body);letter-spacing:.5px;text-transform:uppercase;color:var(--muted)">Resultado do Sorteio</span></div>
+  <div style="width:380px;height:800px;border-radius:32px;border:1px solid oklch(1 0 0 / .1);background:var(--bg);box-shadow:0 20px 50px rgba(0,0,0,.6);overflow:hidden;display:flex;flex-direction:column">
+    <div style="padding:18px 20px 12px;border-bottom:1px solid oklch(1 0 0 / .06)"><div style="font:800 20px var(--head);letter-spacing:.5px;text-transform:uppercase">Times Sorteados</div></div>
+    <div style="flex:1;overflow-y:auto;padding:18px 20px 24px;display:flex;flex-direction:column;gap:16px">
+      <sc-for list="{{ draftTeams }}" as="t" hint-placeholder-count="3">
+        <div style="background:var(--bg2);border:1px solid oklch(1 0 0 / .08);border-radius:16px;overflow:hidden">
+          <div style="height:5px;background:{{ t.color }}"></div>
+          <div style="padding:14px 16px;display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <input value="{{ t.name }}" onChange="{{ t.onRename }}" style="flex:1;background:var(--bg3);border:1px solid oklch(1 0 0 / .08);border-radius:8px;padding:9px 12px;color:{{ t.color }};font:800 15px var(--head);text-transform:uppercase;letter-spacing:.5px"/>
+              <div style="display:flex;align-items:center;gap:5px;background:oklch(1 0 0 / .05);border-radius:20px;padding:6px 12px"><span style="font-size:13px;color:var(--gold)">★</span><span style="font:800 14px var(--head);color:var(--gold)">{{ t.starSum }}</span></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <sc-for list="{{ t.players }}" as="p" hint-placeholder-count="4">
+                <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid oklch(1 0 0 / .05)">
+                  <div style="width:26px;height:26px;border-radius:50%;background:var(--bg3);flex-shrink:0"></div>
+                  <div style="flex:1;font:700 13px var(--body)">{{ p.name }}</div>
+                  <div style="display:flex;gap:1px"><sc-for list="{{ p.starsArr }}" as="s" hint-placeholder-count="5"><span style="font-size:11px;color:{{ s.color }}">★</span></sc-for></div>
+                  <button onClick="{{ p.moveLeft }}" style="width:24px;height:24px;border-radius:6px;background:var(--bg3);border:none;color:var(--muted);font-size:12px;cursor:pointer">‹</button>
+                  <button onClick="{{ p.moveRight }}" style="width:24px;height:24px;border-radius:6px;background:var(--bg3);border:none;color:var(--muted);font-size:12px;cursor:pointer">›</button>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="padding:14px 20px 18px;background:linear-gradient(180deg, transparent, var(--bg) 30%)">
+      <button onClick="{{ onConfirmTeams }}" style="width:100%;background:var(--gold);color:#141414;border:none;border-radius:12px;padding:16px;font:800 15px var(--head);letter-spacing:1px;text-transform:uppercase;cursor:pointer">Confirmar Times e Gerar Jogos</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 5. TABELA DE JOGOS ===== -->
+<div style="display:flex;flex-direction:column;gap:10px;flex-shrink:0">
+  <div style="display:flex;align-items:center;gap:10px"><span style="font:800 11px var(--head);background:var(--gold);color:#141414;border-radius:6px;padding:3px 8px">05</span><span style="font:700 12px var(--body);letter-spacing:.5px;text-transform:uppercase;color:var(--muted)">Jogos do Dia</span></div>
+  <div style="width:380px;height:800px;border-radius:32px;border:1px solid oklch(1 0 0 / .1);background:var(--bg);box-shadow:0 20px 50px rgba(0,0,0,.6);overflow:hidden;display:flex;flex-direction:column">
+    <div style="padding:18px 20px 12px;border-bottom:1px solid oklch(1 0 0 / .06)"><div style="font:800 20px var(--head);letter-spacing:.5px;text-transform:uppercase">Jogos do Dia</div></div>
+    <div style="flex:1;overflow-y:auto;padding:18px 20px 24px;display:flex;flex-direction:column;gap:22px">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <sc-for list="{{ gameRows }}" as="g" hint-placeholder-count="3">
+          <button onClick="{{ g.onTap }}" style="all:unset;cursor:pointer;background:var(--bg2);border:1px solid {{ g.borderColor }};border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;justify-content:center"><span style="font:700 10px var(--body);letter-spacing:1.5px;text-transform:uppercase;color:{{ g.statusColor }};background:{{ g.statusBg }};padding:3px 10px;border-radius:20px">{{ g.statusLabel }}</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:10px;height:10px;border-radius:50%;background:{{ g.colorA }}"></div><div style="font:700 13px var(--body);text-align:center">{{ g.nameA }}</div></div>
+              <div style="font:800 26px var(--head);padding:0 10px">{{ g.scoreLabel }}</div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:10px;height:10px;border-radius:50%;background:{{ g.colorB }}"></div><div style="font:700 13px var(--body);text-align:center">{{ g.nameB }}</div></div>
+            </div>
+          </button>
+        </sc-for>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font:700 12px var(--body);letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Classificação do dia</div>
+        <div style="background:var(--bg2);border:1px solid oklch(1 0 0 / .08);border-radius:12px;overflow:hidden">
+          <div style="display:grid;grid-template-columns:1.6fr .5fr .5fr .5fr .5fr .6fr;padding:10px 12px;font:700 10px var(--body);color:var(--muted2);letter-spacing:.5px;border-bottom:1px solid oklch(1 0 0 / .06)">
+            <div>TIME</div><div style="text-align:center">J</div><div style="text-align:center">V</div><div style="text-align:center">E</div><div style="text-align:center">D</div><div style="text-align:center">SG</div>
+          </div>
+          <sc-for list="{{ standingsRows }}" as="r" hint-placeholder-count="3">
+            <div style="display:grid;grid-template-columns:1.6fr .5fr .5fr .5fr .5fr .6fr;padding:10px 12px;font:600 12px var(--body);align-items:center;border-bottom:1px solid oklch(1 0 0 / .04)">
+              <div style="display:flex;align-items:center;gap:6px"><div style="width:8px;height:8px;border-radius:50%;background:{{ r.color }}"></div>{{ r.name }}</div>
+              <div style="text-align:center;color:var(--muted)">{{ r.j }}</div><div style="text-align:center;color:var(--green)">{{ r.v }}</div><div style="text-align:center;color:var(--muted)">{{ r.e }}</div><div style="text-align:center;color:var(--red)">{{ r.d }}</div><div style="text-align:center;color:var(--gold)">{{ r.sg }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 6. AO VIVO ===== -->
+<div style="display:flex;flex-direction:column;gap:10px;flex-shrink:0">
+  <div style="display:flex;align-items:center;gap:10px"><span style="font:800 11px var(--head);background:var(--gold);color:#141414;border-radius:6px;padding:3px 8px">06</span><span style="font:700 12px var(--body);letter-spacing:.5px;text-transform:uppercase;color:var(--muted)">Registro Ao Vivo</span></div>
+  <div style="width:380px;height:800px;border-radius:32px;border:1px solid oklch(1 0 0 / .1);background:var(--bg);box-shadow:0 20px 50px rgba(0,0,0,.6);overflow:hidden;display:flex;flex-direction:column">
+    <sc-if value="{{ hasLiveGame }}" hint-placeholder-val="{{ false }}">
+      <div style="background:linear-gradient(180deg,#17191b,var(--bg));padding:18px 20px 20px;display:flex;flex-direction:column;gap:12px;border-bottom:1px solid oklch(1 0 0 / .08)">
+        <div style="display:flex;justify-content:center;align-items:center;gap:8px">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--red);animation:esa-pulse 1.2s infinite"></div>
+          <span style="font:800 11px var(--head);letter-spacing:2px;color:var(--red)">AO VIVO</span>
+          <span style="font:700 13px var(--body);color:var(--muted)">{{ liveClock }}</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="flex:1;text-align:center;font:800 15px var(--head);text-transform:uppercase;color:{{ live.colorA }}">{{ live.nameA }}</div>
+          <div style="display:flex;align-items:center;gap:10px;font:800 46px/1 var(--head)"><span>{{ live.scoreA }}</span><span style="color:var(--muted2);font-size:28px">×</span><span>{{ live.scoreB }}</span></div>
+          <div style="flex:1;text-align:center;font:800 15px var(--head);text-transform:uppercase;color:{{ live.colorB }}">{{ live.nameB }}</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:oklch(1 0 0 / .06)">
+        <div style="background:var(--bg);padding:12px;display:flex;flex-direction:column;gap:8px">
+          <sc-for list="{{ live.teamAPlayers }}" as="p" hint-placeholder-count="5">
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <button onClick="{{ p.onTap }}" style="all:unset;cursor:pointer;background:{{ p.bg }};border:1px solid {{ p.border }};border-radius:12px;padding:12px 10px;text-align:center;font:700 13px var(--body);min-height:44px;display:flex;align-items:center;justify-content:center">{{ p.name }}</button>
+              <sc-if value="{{ p.expanded }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;gap:6px">
+                  <button onClick="{{ p.onGoal }}" style="flex:1;background:var(--gold);color:#141414;border:none;border-radius:8px;padding:10px 0;font:800 11px var(--head);letter-spacing:.5px;text-transform:uppercase;cursor:pointer;min-height:44px">Gol</button>
+                  <button onClick="{{ p.onAssist }}" style="flex:1;background:var(--green);color:#0c1a10;border:none;border-radius:8px;padding:10px 0;font:800 11px var(--head);letter-spacing:.5px;text-transform:uppercase;cursor:pointer;min-height:44px">Assist.</button>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+        <div style="background:var(--bg);padding:12px;display:flex;flex-direction:column;gap:8px">
+          <sc-for list="{{ live.teamBPlayers }}" as="p" hint-placeholder-count="5">
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <button onClick="{{ p.onTap }}" style="all:unset;cursor:pointer;background:{{ p.bg }};border:1px solid {{ p.border }};border-radius:12px;padding:12px 10px;text-align:center;font:700 13px var(--body);min-height:44px;display:flex;align-items:center;justify-content:center">{{ p.name }}</button>
+              <sc-if value="{{ p.expanded }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;gap:6px">
+                  <button onClick="{{ p.onGoal }}" style="flex:1;background:var(--gold);color:#141414;border:none;border-radius:8px;padding:10px 0;font:800 11px var(--head);letter-spacing:.5px;text-transform:uppercase;cursor:pointer;min-height:44px">Gol</button>
+                  <button onClick="{{ p.onAssist }}" style="flex:1;background:var(--green);color:#0c1a10;border:none;border-radius:8px;padding:10px 0;font:800 11px var(--head);letter-spacing:.5px;text-transform:uppercase;cursor:pointer;min-height:44px">Assist.</button>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:8px;padding:14px 20px;overflow-y:auto">
+        <div style="font:700 11px var(--body);letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Eventos da partida</div>
+        <sc-for list="{{ live.events }}" as="ev" hint-placeholder-count="2">
+          <div style="display:flex;align-items:center;gap:10px;font:600 13px var(--body);color:var(--muted)">
+            <div style="width:20px;height:20px;border-radius:50%;background:{{ ev.badgeBg }};color:{{ ev.badgeColor }};display:flex;align-items:center;justify-content:center;font:800 10px var(--head);flex-shrink:0">{{ ev.badgeLetter }}</div>
+            <span style="color:var(--text)">{{ ev.playerName }}</span><span>{{ ev.verb }}</span><span style="color:var(--muted2)">{{ ev.clock }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="padding:14px 20px 18px;border-top:1px solid oklch(1 0 0 / .08)">
+        <button onClick="{{ onEndLiveGame }}" style="width:100%;background:transparent;color:var(--red);border:1.5px solid var(--red);border-radius:12px;padding:14px;font:800 14px var(--head);letter-spacing:1px;text-transform:uppercase;cursor:pointer">Encerrar Jogo</button>
+      </div>
+    </sc-if>
+    <sc-if value="{{ noLiveGame }}" hint-placeholder-val="{{ true }}">
+      <div style="padding:18px 20px 12px;border-bottom:1px solid oklch(1 0 0 / .06)"><div style="font:800 20px var(--head);letter-spacing:.5px;text-transform:uppercase">Registro Ao Vivo</div></div>
+      <div style="flex:1;display:flex;flex-direction:column;padding:24px 20px;gap:16px">
+        <div style="text-align:center;color:var(--muted);font-size:13px;padding:10px 0">Nenhum jogo ao vivo. Inicie um confronto agendado:</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ scheduledGames }}" as="g" hint-placeholder-count="1">
+            <button onClick="{{ g.onStart }}" style="all:unset;cursor:pointer;background:var(--bg2);border:1px solid var(--bgold);border-radius:12px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between">
+              <span style="font:700 13px var(--body)">{{ g.nameA }} <span style="color:var(--muted2)">vs</span> {{ g.nameB }}</span>
+              <span style="font:800 10px var(--head);letter-spacing:1px;color:var(--gold);text-transform:uppercase">Iniciar ▸</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+</div>
+
+<!-- ===== 7. DASHBOARD ===== -->
+<div style="display:flex;flex-direction:column;gap:10px;flex-shrink:0">
+  <div style="display:flex;align-items:center;gap:10px"><span style="font:800 11px var(--head);background:var(--gold);color:#141414;border-radius:6px;padding:3px 8px">07</span><span style="font:700 12px var(--body);letter-spacing:.5px;text-transform:uppercase;color:var(--muted)">Raio-X da Pelada</span></div>
+  <div style="width:380px;height:800px;border-radius:32px;border:1px solid oklch(1 0 0 / .1);background:var(--bg);box-shadow:0 20px 50px rgba(0,0,0,.6);overflow:hidden;display:flex;flex-direction:column">
+    <div style="padding:18px 20px 12px;border-bottom:1px solid oklch(1 0 0 / .06)"><div style="font:800 20px var(--head);letter-spacing:.5px;text-transform:uppercase">Raio-X da Pelada</div></div>
+    <div style="flex:1;overflow-y:auto;padding:18px 20px 24px;display:flex;flex-direction:column;gap:20px">
+      <div style="display:flex;gap:6px;background:var(--bg2);border-radius:12px;padding:4px">
+        <sc-for list="{{ periodTabs }}" as="pt" hint-placeholder-count="3">
+          <button onClick="{{ pt.onClick }}" style="flex:1;background:{{ pt.bg }};color:{{ pt.color }};border:none;border-radius:9px;padding:9px 0;font:700 11px var(--body);cursor:pointer">{{ pt.label }}</button>
+        </sc-for>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div style="background:linear-gradient(160deg,oklch(0.80 0.16 86 / .18),var(--bg2));border:1px solid var(--bgold);border-radius:14px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:8px">
+          <div style="width:52px;height:52px;border-radius:50%;background:var(--bg3);border:2px solid var(--gold)"></div>
+          <div style="font:800 14px var(--head);text-align:center;text-transform:uppercase">{{ topScorer.name }}</div>
+          <div style="font:700 10px var(--body);color:var(--muted);letter-spacing:.5px;text-transform:uppercase">Artilheiro</div>
+          <div style="font:800 20px var(--head);color:var(--gold)">{{ topScorer.goals }} gols</div>
+        </div>
+        <div style="background:linear-gradient(160deg,oklch(0.72 0.17 148 / .18),var(--bg2));border:1px solid oklch(0.72 0.17 148 / .3);border-radius:14px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:8px">
+          <div style="width:52px;height:52px;border-radius:50%;background:var(--bg3);border:2px solid var(--green)"></div>
+          <div style="font:800 14px var(--head);text-align:center;text-transform:uppercase">{{ topAssist.name }}</div>
+          <div style="font:700 10px var(--body);color:var(--muted);letter-spacing:.5px;text-transform:uppercase">Garçom da Rodada</div>
+          <div style="font:800 20px var(--head);color:var(--green)">{{ topAssist.assists }} assist.</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font:700 12px var(--body);letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Ranking de Gols</div>
+        <div style="background:var(--bg2);border:1px solid oklch(1 0 0 / .08);border-radius:12px;overflow:hidden">
+          <sc-for list="{{ goalsRanking }}" as="r" hint-placeholder-count="5">
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid oklch(1 0 0 / .05)">
+              <div style="font:800 12px var(--head);color:var(--muted2);width:16px">{{ r.rank }}</div>
+              <div style="width:26px;height:26px;border-radius:50%;background:var(--bg3);flex-shrink:0"></div>
+              <div style="flex:1;font:700 13px var(--body)">{{ r.name }}</div>
+              <div style="font:800 15px var(--head);color:var(--gold)">{{ r.value }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font:700 12px var(--body);letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Ranking de Assistências</div>
+        <div style="background:var(--bg2);border:1px solid oklch(1 0 0 / .08);border-radius:12px;overflow:hidden">
+          <sc-for list="{{ assistsRanking }}" as="r" hint-placeholder-count="5">
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid oklch(1 0 0 / .05)">
+              <div style="font:800 12px var(--head);color:var(--muted2);width:16px">{{ r.rank }}</div>
+              <div style="width:26px;height:26px;border-radius:50%;background:var(--bg3);flex-shrink:0"></div>
+              <div style="flex:1;font:700 13px var(--body)">{{ r.name }}</div>
+              <div style="font:800 15px var(--head);color:var(--green)">{{ r.value }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font:700 12px var(--body);letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Desempenho por Time</div>
+        <div style="background:var(--bg2);border:1px solid oklch(1 0 0 / .08);border-radius:12px;overflow-x:auto">
+          <div style="display:grid;grid-template-columns:1.4fr .45fr .45fr .45fr .45fr .5fr .5fr .5fr;padding:10px 12px;font:700 9px var(--body);color:var(--muted2);letter-spacing:.5px;min-width:380px">
+            <div>TIME</div><div style="text-align:center">J</div><div style="text-align:center">V</div><div style="text-align:center">E</div><div style="text-align:center">D</div><div style="text-align:center">GM</div><div style="text-align:center">GS</div><div style="text-align:center">SG</div>
+          </div>
+          <sc-for list="{{ teamStandings }}" as="r" hint-placeholder-count="3">
+            <div style="display:grid;grid-template-columns:1.4fr .45fr .45fr .45fr .45fr .5fr .5fr .5fr;padding:9px 12px;font:600 11px var(--body);border-top:1px solid oklch(1 0 0 / .05);min-width:380px;align-items:center">
+              <div style="display:flex;align-items:center;gap:6px"><div style="width:8px;height:8px;border-radius:50%;background:{{ r.color }}"></div>{{ r.name }}</div>
+              <div style="text-align:center;color:var(--muted)">{{ r.j }}</div><div style="text-align:center;color:var(--green)">{{ r.v }}</div><div style="text-align:center;color:var(--muted)">{{ r.e }}</div><div style="text-align:center;color:var(--red)">{{ r.d }}</div>
+              <div style="text-align:center">{{ r.gm }}</div><div style="text-align:center">{{ r.gs }}</div><div style="text-align:center;color:var(--gold)">{{ r.sg }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font:700 12px var(--body);letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Destaques da Rodada</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <sc-for list="{{ highlights }}" as="h" hint-placeholder-count="4">
+            <div style="background:var(--bg2);border:1px solid oklch(1 0 0 / .08);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:4px">
+              <div style="font:700 9px var(--body);letter-spacing:.5px;text-transform:uppercase;color:var(--muted)">{{ h.label }}</div>
+              <div style="font:800 15px var(--head);color:{{ h.color }}">{{ h.value }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 8. GESTÃO DE ESTRELAS ===== -->
+<div style="display:flex;flex-direction:column;gap:10px;flex-shrink:0">
+  <div style="display:flex;align-items:center;gap:10px"><span style="font:800 11px var(--head);background:var(--gold);color:#141414;border-radius:6px;padding:3px 8px">08</span><span style="font:700 12px var(--body);letter-spacing:.5px;text-transform:uppercase;color:var(--muted)">Gestão de Estrelas</span></div>
+  <div style="width:380px;height:800px;border-radius:32px;border:1px solid oklch(1 0 0 / .1);background:var(--bg);box-shadow:0 20px 50px rgba(0,0,0,.6);overflow:hidden;display:flex;flex-direction:column">
+    <div style="padding:18px 20px 12px;border-bottom:1px solid oklch(1 0 0 / .06)">
+      <div style="font:800 20px var(--head);letter-spacing:.5px;text-transform:uppercase">Gestão de Estrelas</div>
+      <div style="font:600 11px var(--body);color:var(--muted);margin-top:2px">{{ pendingStarsCount }} sugestões da IA pendentes</div>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:14px 20px 24px;display:flex;flex-direction:column;gap:10px">
+      <sc-for list="{{ starsRows }}" as="s" hint-placeholder-count="6">
+        <div style="background:var(--bg2);border:1px solid {{ s.borderColor }};border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:34px;height:34px;border-radius:50%;background:var(--bg3);flex-shrink:0"></div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:2px">
+              <div style="font:700 14px var(--body)">{{ s.name }}</div>
+              <div style="font:700 9px var(--body);letter-spacing:.5px;text-transform:uppercase;color:{{ s.tagColor }}">{{ s.tagLabel }}</div>
+            </div>
+            <div style="display:flex;gap:1px"><sc-for list="{{ s.starsArr }}" as="st" hint-placeholder-count="5"><span style="font-size:15px;color:{{ st.color }}">★</span></sc-for></div>
+          </div>
+          <sc-if value="{{ s.hasPending }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:10px;background:oklch(0.80 0.16 86 / .08);border-radius:10px;padding:10px 12px">
+              <div style="display:flex;align-items:center;justify-content:center;gap:10px;font:700 13px var(--body)">
+                <span style="color:var(--muted)">{{ s.current }}★</span><span style="color:var(--muted2)">→</span><span style="color:var(--gold);font:800 15px var(--head)">{{ s.suggested }}★ sugerido</span>
+              </div>
+              <div style="display:flex;gap:6px">
+                <button onClick="{{ s.onApprove }}" style="flex:1;background:var(--gold);color:#141414;border:none;border-radius:8px;padding:9px 0;font:800 11px var(--head);letter-spacing:.5px;text-transform:uppercase;cursor:pointer">Aprovar</button>
+                <button onClick="{{ s.onAdjust }}" style="flex:1;background:var(--bg3);color:var(--text);border:1px solid oklch(1 0 0 / .1);border-radius:8px;padding:9px 0;font:800 11px var(--head);letter-spacing:.5px;text-transform:uppercase;cursor:pointer">Ajustar</button>
+                <button onClick="{{ s.onIgnore }}" style="flex:1;background:transparent;color:var(--muted);border:1px solid oklch(1 0 0 / .1);border-radius:8px;padding:9px 0;font:800 11px var(--head);letter-spacing:.5px;text-transform:uppercase;cursor:pointer">Ignorar</button>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ s.adjusting }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;align-items:center;gap:12px;justify-content:center;background:var(--bg3);border-radius:10px;padding:10px">
+              <button onClick="{{ s.onAdjustDown }}" style="width:34px;height:34px;border-radius:8px;background:var(--bg2);border:none;color:var(--text);font-size:16px;cursor:pointer">−</button>
+              <div style="font:800 18px var(--head);color:var(--gold);width:24px;text-align:center">{{ s.adjustValue }}</div>
+              <button onClick="{{ s.onAdjustUp }}" style="width:34px;height:34px;border-radius:8px;background:var(--bg2);border:none;color:var(--text);font-size:16px;cursor:pointer">+</button>
+              <button onClick="{{ s.onAdjustConfirm }}" style="background:var(--gold);color:#141414;border:none;border-radius:8px;padding:8px 14px;font:800 11px var(--head);text-transform:uppercase;cursor:pointer">OK</button>
+            </div>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</div>
+
+</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const HUES = [86, 148, 220, 15, 300];
+const POS = { GOL: 'Goleiro', ZAG: 'Zagueiro', MEI: 'Meio-campo', ATA: 'Atacante' };
+
+function seedPlayers() {
+  const raw = [
+    [1,'Matheus Melo','ATA',4,18,6,15,9],[2,'Lucas Andrade','MEI',3,5,14,15,8],
+    [3,'Rafael Souza','ZAG',3,2,3,14,7],[4,'Gabriel Costa','GOL',4,0,1,15,9],
+    [5,'João Pedro','ATA',5,22,9,15,10],[6,'Bruno Lima','MEI',2,3,5,12,5],
+    [7,'Diego Ramos','ZAG',2,1,2,13,6],[8,'Felipe Rocha','ATA',3,10,4,14,7],
+    [9,'Thiago Alves','MEI',4,7,12,15,9],[10,'André Barbosa','GOL',3,0,0,10,4],
+    [11,'Vinicius Teixeira','ZAG',3,2,1,12,6],[12,'Caio Martins','ATA',2,4,2,9,3],
+    [13,'Eduardo Nunes','MEI',3,6,8,13,6],[14,'Renato Farias','ZAG',4,3,2,15,10],
+    [15,'Otávio Pinto','ATA',3,9,3,14,7],[16,'Marcelo Dias','GOL',2,0,0,8,2],
+    [17,'Igor Cardoso','MEI',5,8,16,15,11],[18,'Leandro Moura','ZAG',3,1,1,11,5],
+    [19,'Pedro Henrique','ATA',4,15,5,15,8],[20,'Samuel Borges','MEI',2,2,4,10,4],
+  ];
+  return raw.map(([id,name,pos,stars,goals,assists,games,wins]) => ({
+    id, name, position: POS[pos], stars, goals, assists, games, wins, origin: 'manual',
+  }));
+}
+
+const HISTORY_SAMPLE = [
+  { date: '17 ago 2026', result: 'Time Verde 4 x 2 Time Ouro', personal: '1 gol · 1 assistência' },
+  { date: '10 ago 2026', result: 'Time Prata 3 x 3 Time Verde', personal: '2 assistências' },
+  { date: '03 ago 2026', result: 'Time Ouro 5 x 1 Time Prata', personal: '2 gols' },
+];
+
+class Component extends DCLogic {
+  state = {
+    currentPlayerId: 1, nextPlayerId: 21,
+    loginName: '', loginPosition: 'Qualquer',
+    players: seedPlayers(),
+    peladaDate: '2026-08-24',
+    presentIds: Array.from({length:20}, (_,i) => i+1),
+    numTeams: 3,
+    teams: [
+      { id: 1, name: 'Time Ouro', hue: 86, playerIds: [1,2,3,4,5,6,7] },
+      { id: 2, name: 'Time Verde', hue: 148, playerIds: [8,9,10,11,12,13,14] },
+      { id: 3, name: 'Time Prata', hue: 220, playerIds: [15,16,17,18,19,20] },
+    ],
+    games: [
+      { id: 1, teamAId: 1, teamBId: 2, scoreA: 5, scoreB: 3, status: 'finalizado' },
+      { id: 2, teamAId: 1, teamBId: 3, scoreA: 4, scoreB: 4, status: 'finalizado' },
+      { id: 3, teamAId: 2, teamBId: 3, scoreA: null, scoreB: null, status: 'agendado' },
+    ],
+    events: [
+      {gameId:1, playerId:5, type:'gol', sec:180}, {gameId:1, playerId:3, type:'assistencia', sec:150},
+      {gameId:1, playerId:5, type:'gol', sec:340}, {gameId:1, playerId:9, type:'assistencia', sec:500},
+      {gameId:1, playerId:11, type:'gol', sec:520}, {gameId:1, playerId:8, type:'gol', sec:700},
+      {gameId:1, playerId:2, type:'gol', sec:900}, {gameId:1, playerId:11, type:'gol', sec:1000},
+      {gameId:1, playerId:4, type:'gol', sec:1300},
+      {gameId:2, playerId:5, type:'gol', sec:200}, {gameId:2, playerId:2, type:'gol', sec:450},
+      {gameId:2, playerId:8, type:'gol', sec:700}, {gameId:2, playerId:7, type:'gol', sec:1100},
+      {gameId:2, playerId:17, type:'gol', sec:250}, {gameId:2, playerId:17, type:'gol', sec:600},
+      {gameId:2, playerId:19, type:'gol', sec:900}, {gameId:2, playerId:15, type:'gol', sec:1200},
+      {gameId:2, playerId:17, type:'assistencia', sec:880}, {gameId:2, playerId:14, type:'assistencia', sec:1180},
+    ],
+    liveGameId: null, liveSeconds: 0, liveScoreA: 0, liveScoreB: 0, liveEvents: [], expandedPlayerId: null,
+    starsDecision: {}, adjustingId: null, adjustValue: 3,
+    periodFilter: 'pelada',
+  };
+
+  componentWillUnmount() { if (this._timer) clearInterval(this._timer); }
+
+  player(id) { return this.state.players.find(p => p.id === id); }
+  team(id) { return this.state.teams.find(t => t.id === id); }
+  teamColor(hue) { return `oklch(0.62 0.16 ${hue})`; }
+  aiSuggested(p) {
+    const score = p.goals*2 + p.assists*1.5 + p.wins;
+    const per = p.games ? score/p.games : 0;
+    if (per < 1.5) return 1; if (per < 3) return 2; if (per < 5) return 3; if (per < 7) return 4; return 5;
+  }
+  starsArr(n) { return Array.from({length:5},(_,i)=>({filled:i<n, color: i<n ? 'var(--gold)' : 'oklch(1 0 0 / .18)'})); }
+
+  standingsFor(games, teams) {
+    const map = {};
+    teams.forEach(t => map[t.id] = {teamId:t.id, name:t.name, color:this.teamColor(t.hue), j:0,v:0,e:0,d:0,gm:0,gs:0,sg:0,pts:0});
+    games.filter(g=>g.status==='finalizado').forEach(g => {
+      const a=map[g.teamAId], b=map[g.teamBId]; if(!a||!b) return;
+      a.j++; b.j++; a.gm+=g.scoreA; a.gs+=g.scoreB; b.gm+=g.scoreB; b.gs+=g.scoreA;
+      if (g.scoreA>g.scoreB){a.v++;b.d++;a.pts+=3;} else if(g.scoreA<g.scoreB){b.v++;a.d++;b.pts+=3;} else {a.e++;b.e++;a.pts++;b.pts++;}
+    });
+    Object.values(map).forEach(t => t.sg = t.gm-t.gs);
+    return Object.values(map).sort((x,y)=> y.pts-x.pts || y.sg-x.sg);
+  }
+
+  onLogin() {
+    const { loginName, loginPosition, nextPlayerId } = this.state;
+    if (loginName.trim()) {
+      const p = { id: nextPlayerId, name: loginName.trim(), position: loginPosition, stars:3, goals:0, assists:0, games:0, wins:0, origin:'manual', fresh:true };
+      this.setState(s => ({ players:[...s.players, p], currentPlayerId: p.id, nextPlayerId: nextPlayerId+1 }));
+    }
+  }
+
+  togglePresence(id) { this.setState(s => ({ presentIds: s.presentIds.includes(id) ? s.presentIds.filter(x=>x!==id) : [...s.presentIds, id] })); }
+  setNumTeams(n) { if(n>=2 && n<=5) this.setState({numTeams:n}); }
+
+  sortear() {
+    const { players, presentIds, numTeams } = this.state;
+    const pool = players.filter(p => presentIds.includes(p.id)).sort((a,b)=>b.stars-a.stars);
+    const teams = Array.from({length:numTeams}, (_,i)=>({id:i+1, name:`Time ${i+1}`, hue:HUES[i%HUES.length], playerIds:[]}));
+    let dir=1, idx=0;
+    pool.forEach(p => { teams[idx].playerIds.push(p.id); idx+=dir; if(idx===numTeams){idx=numTeams-1;dir=-1;} else if(idx===-1){idx=0;dir=1;} });
+    this.setState({ teams, games:[] });
+  }
+
+  renameTeam(teamId, name) { this.setState(s => ({ teams: s.teams.map(t => t.id===teamId ? {...t,name} : t) })); }
+  moveplayer(teamId, playerId, dir) {
+    this.setState(s => {
+      const teams = s.teams.map(t => ({...t, playerIds:[...t.playerIds]}));
+      const idx = teams.findIndex(t=>t.id===teamId);
+      const target = idx+dir; if(target<0 || target>=teams.length) return {};
+      teams[idx].playerIds = teams[idx].playerIds.filter(id=>id!==playerId);
+      teams[target].playerIds.push(playerId);
+      return { teams };
+    });
+  }
+
+  confirmTeams() {
+    const { teams } = this.state;
+    const games = [];
+    let gid = 1;
+    for (let i=0;i<teams.length;i++) for (let j=i+1;j<teams.length;j++) games.push({id:gid++, teamAId:teams[i].id, teamBId:teams[j].id, scoreA:null, scoreB:null, status:'agendado'});
+    this.setState({ games });
+  }
+
+  startLive(gameId) {
+    this.setState({ liveGameId: gameId, liveSeconds:0, liveScoreA:0, liveScoreB:0, liveEvents:[], expandedPlayerId:null });
+    if (this._timer) clearInterval(this._timer);
+    this._timer = setInterval(() => this.setState(s => ({liveSeconds: s.liveSeconds+10})), 1000);
+  }
+
+  toggleExpand(playerId) { this.setState(s => ({ expandedPlayerId: s.expandedPlayerId===playerId ? null : playerId })); }
+
+  recordEvent(playerId, type, side) {
+    this.setState(s => {
+      const liveEvents = [...s.liveEvents, { id: Date.now()+Math.random(), playerId, type, sec: s.liveSeconds, side }];
+      return { liveEvents, liveScoreA: type==='gol'&&side==='A' ? s.liveScoreA+1 : s.liveScoreA, liveScoreB: type==='gol'&&side==='B' ? s.liveScoreB+1 : s.liveScoreB, expandedPlayerId: null };
+    });
+  }
+
+  endLive() {
+    if (this._timer) clearInterval(this._timer);
+    const { games, liveGameId, liveScoreA, liveScoreB, liveEvents } = this.state;
+    const game = games.find(g=>g.id===liveGameId);
+    const teamA = this.team(game.teamAId), teamB = this.team(game.teamBId);
+    const winnerId = liveScoreA>liveScoreB ? game.teamAId : liveScoreB>liveScoreA ? game.teamBId : null;
+    this.setState(s => ({
+      games: s.games.map(g => g.id===liveGameId ? {...g, scoreA:liveScoreA, scoreB:liveScoreB, status:'finalizado'} : g),
+      events: [...s.events, ...liveEvents.map(e => ({gameId:liveGameId, playerId:e.playerId, type:e.type, sec:e.sec}))],
+      players: s.players.map(p => {
+        const inGame = teamA.playerIds.includes(p.id) || teamB.playerIds.includes(p.id);
+        if (!inGame) return p;
+        const goals = liveEvents.filter(e=>e.playerId===p.id && e.type==='gol').length;
+        const assists = liveEvents.filter(e=>e.playerId===p.id && e.type==='assistencia').length;
+        const won = winnerId && ((winnerId===game.teamAId && teamA.playerIds.includes(p.id)) || (winnerId===game.teamBId && teamB.playerIds.includes(p.id)));
+        return {...p, goals:p.goals+goals, assists:p.assists+assists, games:p.games+1, wins:p.wins+(won?1:0)};
+      }),
+      liveGameId: null,
+    }));
+  }
+
+  approveStars(id) { const p=this.player(id); const sug=this.aiSuggested(p); this.setState(s => ({ players: s.players.map(pl=>pl.id===id?{...pl,stars:sug,origin:'ia'}:pl), starsDecision:{...s.starsDecision,[id]:'approved'} })); }
+  ignoreStars(id) { this.setState(s => ({ starsDecision:{...s.starsDecision,[id]:'ignored'} })); }
+  startAdjust(id) { this.setState({ adjustingId:id, adjustValue: this.player(id).stars }); }
+  adjustDelta(d) { this.setState(s => ({ adjustValue: Math.max(1,Math.min(5,s.adjustValue+d)) })); }
+  confirmAdjust() { const id=this.state.adjustingId, val=this.state.adjustValue; this.setState(s => ({ players: s.players.map(pl=>pl.id===id?{...pl,stars:val,origin:'manual'}:pl), starsDecision:{...s.starsDecision,[id]:'approved'}, adjustingId:null })); }
+
+  renderVals() {
+    const s = this.state;
+    const me = this.player(s.currentPlayerId) || this.state.players[0];
+    const meHistory = !me.fresh ? HISTORY_SAMPLE : [];
+
+    const presenceRows = s.players.map(p => {
+      const present = s.presentIds.includes(p.id);
+      return { id:p.id, name:p.name, position:p.position, starsArr:this.starsArr(p.stars),
+        toggle: () => this.togglePresence(p.id), checkBg: present?'var(--gold)':'transparent', checkColor: present?'var(--gold)':'oklch(1 0 0 / .2)',
+        borderColor: present ? 'var(--bgold)' : 'oklch(1 0 0 / .06)' };
+    });
+
+    const draftTeams = s.teams.map(t => ({
+      id:t.id, name:t.name, color:this.teamColor(t.hue), starSum: t.playerIds.reduce((a,id)=>a+this.player(id).stars,0),
+      onRename: (e) => this.renameTeam(t.id, e.target.value),
+      players: t.playerIds.map(id => { const p=this.player(id); return { id, name:p.name, starsArr:this.starsArr(p.stars),
+        moveLeft: () => this.moveplayer(t.id, id, -1), moveRight: () => this.moveplayer(t.id, id, 1) }; }),
+    }));
+
+    const gameRows = s.games.map(g => {
+      const a=this.team(g.teamAId), b=this.team(g.teamBId);
+      const statusMap = { agendado: {label:'AGENDADO', color:'var(--muted)', bg:'oklch(1 0 0 / .08)', border:'oklch(1 0 0 / .08)'},
+        finalizado: {label:'FINALIZADO', color:'var(--green)', bg:'oklch(0.72 0.17 148 / .12)', border:'oklch(0.72 0.17 148 / .25)'} };
+      const st = statusMap[g.status];
+      return { id:g.id, nameA:a.name, nameB:b.name, colorA:this.teamColor(a.hue), colorB:this.teamColor(b.hue),
+        scoreLabel: g.status==='agendado' ? 'vs' : `${g.scoreA} × ${g.scoreB}`,
+        statusLabel: st.label, statusColor: st.color, statusBg: st.bg, borderColor: st.border,
+        onTap: () => g.status==='agendado' ? this.startLive(g.id) : null };
+    });
+
+    const standingsRows = this.standingsFor(s.games, s.teams).map(r => ({ name:r.name, color:r.color, j:r.j, v:r.v, e:r.e, d:r.d, sg:r.sg }));
+
+    const hasLiveGame = !!s.liveGameId;
+    let live = null, liveClock = '00:00';
+    if (hasLiveGame) {
+      const g = s.games.find(gg=>gg.id===s.liveGameId);
+      const teamA = this.team(g.teamAId), teamB = this.team(g.teamBId);
+      const mkPlayer = (id, side) => { const p=this.player(id); const expanded = s.expandedPlayerId===id;
+        return { id, name:p.name, expanded, bg: expanded?'var(--bg3)':'var(--bg2)', border: expanded?'var(--bgold)':'oklch(1 0 0 / .08)',
+          onTap: () => this.toggleExpand(id), onGoal: () => this.recordEvent(id,'gol',side), onAssist: () => this.recordEvent(id,'assistencia',side) }; };
+      const mm = String(Math.floor(s.liveSeconds/60)).padStart(2,'0'), ss = String(s.liveSeconds%60).padStart(2,'0');
+      liveClock = `${mm}:${ss}`;
+      live = { nameA: teamA.name, nameB: teamB.name, colorA:this.teamColor(teamA.hue), colorB:this.teamColor(teamB.hue),
+        scoreA:s.liveScoreA, scoreB:s.liveScoreB,
+        teamAPlayers: teamA.playerIds.map(id=>mkPlayer(id,'A')), teamBPlayers: teamB.playerIds.map(id=>mkPlayer(id,'B')),
+        events: [...s.liveEvents].reverse().map(e => { const p=this.player(e.playerId); const mm2=String(Math.floor(e.sec/60)).padStart(2,'0'), ss2=String(e.sec%60).padStart(2,'0');
+          return { id:e.id, playerName:p.name, verb: e.type==='gol'?'marcou um gol':'deu assistência', clock:`${mm2}:${ss2}`,
+            badgeLetter: e.type==='gol'?'G':'A', badgeBg: e.type==='gol'?'oklch(0.80 0.16 86 / .2)':'oklch(0.72 0.17 148 / .2)', badgeColor: e.type==='gol'?'var(--gold)':'var(--green)' }; }) };
+    }
+    const scheduledGames = s.games.filter(g=>g.status==='agendado').map(g => { const a=this.team(g.teamAId), b=this.team(g.teamBId);
+      return { id:g.id, nameA:a.name, nameB:b.name, onStart: () => this.startLive(g.id) }; });
+
+    const goalsRanking = [...s.players].sort((a,b)=>b.goals-a.goals).slice(0,5).map((p,i)=>({rank:i+1, name:p.name, value:p.goals}));
+    const assistsRanking = [...s.players].sort((a,b)=>b.assists-a.assists).slice(0,5).map((p,i)=>({rank:i+1, name:p.name, value:p.assists}));
+    const topScorer = goalsRanking[0] ? this.player(s.players.find(p=>p.goals===goalsRanking[0].value).id) : s.players[0];
+    const topAssist = assistsRanking[0] ? this.player(s.players.find(p=>p.assists===assistsRanking[0].value).id) : s.players[0];
+    const teamStandings = this.standingsFor(s.games, s.teams).map(r=>({name:r.name,color:r.color,j:r.j,v:r.v,e:r.e,d:r.d,gm:r.gm,gs:r.gs,sg:r.sg}));
+
+    const todayGoalEvents = s.events.filter(e=>e.type==='gol');
+    const goalCounts = {}; todayGoalEvents.forEach(e=>goalCounts[e.playerId]=(goalCounts[e.playerId]||0)+1);
+    const topTodayScorerId = Object.keys(goalCounts).sort((a,b)=>goalCounts[b]-goalCounts[a])[0];
+    const fastestGoal = todayGoalEvents.sort((a,b)=>a.sec-b.sec)[0];
+    const standingsToday = this.standingsFor(s.games, s.teams);
+    const safestTeam = [...standingsToday].sort((a,b)=>a.gs-b.gs)[0];
+    const winningestTeam = [...standingsToday].sort((a,b)=>b.v-a.v)[0];
+    const fmtClock = (sec) => `${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;
+    const highlights = [
+      { label:'Mais gols na rodada', value: topTodayScorerId ? `${this.player(+topTodayScorerId).name} (${goalCounts[topTodayScorerId]})` : '—', color:'var(--gold)' },
+      { label:'Gol mais rápido', value: fastestGoal ? `${this.player(fastestGoal.playerId).name} · ${fmtClock(fastestGoal.sec)}` : '—', color:'var(--gold)' },
+      { label:'Time mais seguro', value: safestTeam ? `${safestTeam.name} (${safestTeam.gs} sofridos)` : '—', color:'var(--green)' },
+      { label:'Time que mais venceu', value: winningestTeam ? `${winningestTeam.name} (${winningestTeam.v}V)` : '—', color:'var(--green)' },
+    ];
+
+    const starsRows = s.players.map(p => {
+      const decision = s.starsDecision[p.id];
+      const suggested = this.aiSuggested(p);
+      const hasPending = suggested !== p.stars && decision !== 'approved' && decision !== 'ignored';
+      const adjusting = s.adjustingId === p.id;
+      return { id:p.id, name:p.name, starsArr:this.starsArr(p.stars),
+        tagLabel: p.origin==='ia' ? 'SUGERIDO POR IA' : 'MANUAL', tagColor: p.origin==='ia' ? 'var(--gold)' : 'var(--muted)',
+        borderColor: hasPending ? 'var(--bgold)' : 'oklch(1 0 0 / .08)',
+        hasPending: hasPending && !adjusting, adjusting, current:p.stars, suggested, adjustValue: s.adjustValue,
+        onApprove: () => this.approveStars(p.id), onIgnore: () => this.ignoreStars(p.id), onAdjust: () => this.startAdjust(p.id),
+        onAdjustUp: () => this.adjustDelta(1), onAdjustDown: () => this.adjustDelta(-1), onAdjustConfirm: () => this.confirmAdjust() };
+    });
+    const pendingStarsCount = starsRows.filter(r=>r.hasPending).length;
+
+    const periodTabs = ['pelada','mes','ano'].map(key => ({ key, label: key==='pelada'?'Pelada':key==='mes'?'Mês':'Ano',
+      bg: s.periodFilter===key ? 'var(--bg3)' : 'transparent', color: s.periodFilter===key ? 'var(--gold)' : 'var(--muted)',
+      onClick: () => this.setState({periodFilter:key}) }));
+
+    return {
+      loginName: s.loginName, loginPosition: s.loginPosition,
+      onLoginNameChange: (e) => this.setState({loginName:e.target.value}),
+      onLoginPositionChange: (e) => this.setState({loginPosition:e.target.value}),
+      onLogin: () => this.onLogin(),
+      me: { name: me.name, position: me.position, goals: me.goals, assists: me.assists, games: me.games, wins: me.wins,
+        starsArr: this.starsArr(me.stars), hasHistory: meHistory.length>0, noHistory: meHistory.length===0, history: meHistory },
+      pendingStarsCount,
+      peladaDate: s.peladaDate, onDateChange: (e) => this.setState({peladaDate:e.target.value}),
+      presentCount: s.presentIds.length, totalPlayers: s.players.length, presenceRows,
+      numTeams: s.numTeams, onIncTeams: () => this.setNumTeams(s.numTeams+1), onDecTeams: () => this.setNumTeams(s.numTeams-1),
+      onSortear: () => this.sortear(),
+      draftTeams, onConfirmTeams: () => this.confirmTeams(),
+      gameRows, standingsRows,
+      hasLiveGame, noLiveGame: !hasLiveGame, live, liveClock, onEndLiveGame: () => this.endLive(), scheduledGames,
+      periodTabs, topScorer: {name:topScorer.name, goals:topScorer.goals}, topAssist: {name:topAssist.name, assists:topAssist.assists},
+      goalsRanking, assistsRanking, teamStandings, highlights,
+      starsRows,
+    };
+  }
+}
+
+</script>
+</body>
+</html>
