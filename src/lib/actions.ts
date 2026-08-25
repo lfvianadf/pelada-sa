@@ -67,6 +67,81 @@ export async function updatePeladaDuration(peladaId: number, durationMinutes: nu
   const { error } = await supabase.from("peladas").update({ duration_minutes: durationMinutes }).eq("id", peladaId);
   if (error) return { error: error.message };
   revalidatePath("/admin/nova-pelada");
+  revalidatePath("/admin/pelada-editar");
+  revalidatePath("/jogos");
+  revalidatePath("/ao-vivo");
+  return {};
+}
+
+export async function updatePeladaDate(peladaId: number, date: string): Promise<ActionResult> {
+  const check = await requireAdmin();
+  if ("error" in check) return check;
+  if (!date) return { error: "Informe a data." };
+  const supabase = await createClient();
+  const { error } = await supabase.from("peladas").update({ date }).eq("id", peladaId);
+  if (error) return { error: error.message };
+  revalidatePath("/admin/pelada-editar");
+  revalidatePath("/jogos");
+  revalidatePath("/dashboard");
+  return {};
+}
+
+export async function updatePeladaFormat(peladaId: number, format: PeladaFormat): Promise<ActionResult> {
+  const check = await requireAdmin();
+  if ("error" in check) return check;
+  const supabase = await createClient();
+
+  const { data: finishedGames, error: finishedErr } = await supabase
+    .from("games")
+    .select("id")
+    .eq("pelada_id", peladaId)
+    .eq("status", "finalizado")
+    .limit(1);
+  if (finishedErr) return { error: finishedErr.message };
+  if (finishedGames && finishedGames.length > 0) {
+    return { error: "Não é possível mudar o formato: já existe jogo finalizado nesta pelada." };
+  }
+
+  const { error: formatErr } = await supabase.from("peladas").update({ format }).eq("id", peladaId);
+  if (formatErr) return { error: formatErr.message };
+
+  await supabase.from("games").delete().eq("pelada_id", peladaId).neq("status", "finalizado");
+
+  const { data: teams, error: teamsErr } = await supabase
+    .from("teams")
+    .select("id")
+    .eq("pelada_id", peladaId)
+    .order("id");
+  if (teamsErr) return { error: teamsErr.message };
+
+  if (teams && teams.length >= 2) {
+    if (format === "vencedor_fica") {
+      const [first, second, ...rest] = teams;
+      const { error: gameErr } = await supabase
+        .from("games")
+        .insert({ pelada_id: peladaId, team_a_id: first.id, team_b_id: second.id });
+      if (gameErr) return { error: gameErr.message };
+
+      await supabase.from("teams").update({ queue_order: null }).eq("pelada_id", peladaId);
+      for (let i = 0; i < rest.length; i++) {
+        await supabase.from("teams").update({ queue_order: i + 1 }).eq("id", rest[i].id);
+      }
+    } else {
+      await supabase.from("teams").update({ queue_order: null }).eq("pelada_id", peladaId);
+      const gameRows: { pelada_id: number; team_a_id: number; team_b_id: number }[] = [];
+      for (let i = 0; i < teams.length; i++) {
+        for (let j = i + 1; j < teams.length; j++) {
+          gameRows.push({ pelada_id: peladaId, team_a_id: teams[i].id, team_b_id: teams[j].id });
+        }
+      }
+      const { error: gamesErr } = await supabase.from("games").insert(gameRows);
+      if (gamesErr) return { error: gamesErr.message };
+    }
+  }
+
+  revalidatePath("/admin/pelada-editar");
+  revalidatePath("/jogos");
+  revalidatePath("/admin/sorteio");
   return {};
 }
 

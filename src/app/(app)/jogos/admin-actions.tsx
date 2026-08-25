@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { IconPlus, IconUsers, IconLink } from "@/components/icons";
+import { IconPlus, IconUsers, IconLink, IconEdit } from "@/components/icons";
 
 export function AdminActions({ peladaId, hasTeams }: { peladaId: number | null; hasTeams: boolean }) {
   return (
@@ -13,6 +13,17 @@ export function AdminActions({ peladaId, hasTeams }: { peladaId: number | null; 
       >
         <IconPlus size={18} />
       </Link>
+      {peladaId && (
+        <Link
+          href={`/admin/pelada-editar?pelada=${peladaId}`}
+          title="Editar Pelada"
+          aria-label="Editar Pelada"
+          className="w-11 h-11 flex items-center justify-center rounded-xl shrink-0"
+          style={{ background: "var(--bg2)", border: "1px solid var(--hairline)", color: "var(--text)" }}
+        >
+          <IconEdit size={18} />
+        </Link>
+      )}
       {peladaId && hasTeams && (
         <Link
           href={`/admin/sorteio?pelada=${peladaId}`}
