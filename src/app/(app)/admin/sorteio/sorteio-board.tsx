@@ -6,9 +6,10 @@ import { ScreenBody, BottomCTA } from "@/components/Screen";
 import { Stars } from "@/components/Stars";
 import { Avatar } from "@/components/Avatar";
 import { IconDownload } from "@/components/icons";
+import { ExportPreviewModal } from "@/components/ExportPreviewModal";
 import { teamColor, type PlayerRow, type TeamRow } from "@/lib/domain";
 import { renameTeam, swapPlayers, confirmTeams } from "@/lib/actions";
-import { exportElementAsPng } from "@/lib/exportPng";
+import { captureElementAsPng } from "@/lib/exportPng";
 import { TeamsExportCard } from "./teams-export-card";
 
 interface TeamPlayerRow {
@@ -37,6 +38,7 @@ export function SorteioBoard({
   const [openTeamId, setOpenTeamId] = useState<number | null>(teams[0]?.id ?? null);
   const [error, setError] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [exportDataUrl, setExportDataUrl] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const exportRef = useRef<HTMLDivElement>(null);
 
@@ -44,7 +46,8 @@ export function SorteioBoard({
     if (!exportRef.current) return;
     setIsExporting(true);
     try {
-      await exportElementAsPng(exportRef.current, "times-sorteados.png");
+      const dataUrl = await captureElementAsPng(exportRef.current);
+      setExportDataUrl(dataUrl);
     } catch {
       setError("Não foi possível gerar a imagem.");
     } finally {
@@ -288,6 +291,10 @@ export function SorteioBoard({
           />
         </div>
       </div>
+
+      {exportDataUrl && (
+        <ExportPreviewModal dataUrl={exportDataUrl} filename="times-sorteados.png" onClose={() => setExportDataUrl(null)} />
+      )}
     </>
   );
 }

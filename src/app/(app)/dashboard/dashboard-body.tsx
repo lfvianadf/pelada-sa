@@ -4,8 +4,9 @@ import { useRef, useState } from "react";
 import { ScreenBody } from "@/components/Screen";
 import { Avatar } from "@/components/Avatar";
 import { IconDownload } from "@/components/icons";
+import { ExportPreviewModal } from "@/components/ExportPreviewModal";
 import type { PlayerRow, Standing } from "@/lib/domain";
-import { exportElementAsPng } from "@/lib/exportPng";
+import { captureElementAsPng } from "@/lib/exportPng";
 import { PeriodTabs } from "./period-tabs";
 
 interface Highlight {
@@ -30,13 +31,15 @@ export function DashboardBody({
   highlights: Highlight[];
 }) {
   const [isExporting, setIsExporting] = useState(false);
+  const [exportDataUrl, setExportDataUrl] = useState<string | null>(null);
   const exportRef = useRef<HTMLDivElement>(null);
 
   async function handleExport() {
     if (!exportRef.current) return;
     setIsExporting(true);
     try {
-      await exportElementAsPng(exportRef.current, "raio-x-da-pelada.png");
+      const dataUrl = await captureElementAsPng(exportRef.current);
+      setExportDataUrl(dataUrl);
     } finally {
       setIsExporting(false);
     }
@@ -163,6 +166,10 @@ export function DashboardBody({
           {content}
         </div>
       </div>
+
+      {exportDataUrl && (
+        <ExportPreviewModal dataUrl={exportDataUrl} filename="raio-x-da-pelada.png" onClose={() => setExportDataUrl(null)} />
+      )}
     </ScreenBody>
   );
 }
