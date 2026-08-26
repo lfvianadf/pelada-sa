@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { startLive } from "@/lib/actions";
 
@@ -13,16 +13,32 @@ export function AoVivoStartList({
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [startingGameId, setStartingGameId] = useState<number | null>(null);
 
   function team(id: number) {
     return teams.find((t) => t.id === id);
   }
 
   function handleStart(gameId: number) {
+    setStartingGameId(gameId);
     startTransition(async () => {
       await startLive(gameId);
       router.refresh();
     });
+  }
+
+  if (startingGameId !== null) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center gap-4 py-10">
+        <div
+          className="w-10 h-10 rounded-full animate-spin"
+          style={{ border: "3px solid var(--bg3)", borderTopColor: "var(--gold)" }}
+        />
+        <div className="font-[var(--font-head)] font-extrabold text-[15px] uppercase tracking-wide" style={{ color: "var(--gold)" }}>
+          Iniciando partida...
+        </div>
+      </div>
+    );
   }
 
   return (

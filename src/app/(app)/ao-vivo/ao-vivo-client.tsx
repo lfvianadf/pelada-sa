@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { teamColor, fmtClock, type GameRow, type PlayerRow, type TeamRow, type MatchEventRow } from "@/lib/domain";
 import { recordEvent, endLive, resolveVencedorFicaTie, resetLiveGame } from "@/lib/actions";
@@ -297,6 +297,8 @@ export function AoVivoClient({
   const [confirmingReset, setConfirmingReset] = useState(false);
   const [localEvents, setLocalEvents] = useState<MatchEventRow[]>(events);
   const [syncedEvents, setSyncedEvents] = useState(events);
+  const pendingWritesRef = useRef<Promise<unknown>[]>([]);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   if (events !== syncedEvents) {
     setSyncedEvents(events);
@@ -338,6 +340,13 @@ export function AoVivoClient({
     setStep("scorer");
   }
 
+  function trackWrite(promise: Promise<unknown>) {
+    pendingWritesRef.current.push(promise);
+    promise.finally(() => {
+      pendingWritesRef.current = pendingWritesRef.current.filter((p) => p !== promise);
+    });
+  }
+
   function handlePickScorer(id: number) {
     setScorerId(id);
     setLocalEvents((prev) => [
@@ -345,7 +354,7 @@ export function AoVivoClient({
       { id: -Date.now(), game_id: game.id, player_id: id, type: "gol", sec: seconds, created_at: new Date().toISOString() },
     ]);
     setStep("assist");
-    recordEvent(game.id, id, "gol", seconds).then(() => router.refresh());
+    trackWrite(recordEvent(game.id, id, "gol", seconds));
   }
 
   function handlePickAssist(id: number) {
@@ -354,20 +363,28 @@ export function AoVivoClient({
       { id: -Date.now(), game_id: game.id, player_id: id, type: "assistencia", sec: seconds, created_at: new Date().toISOString() },
     ]);
     resetFlow();
-    recordEvent(game.id, id, "assistencia", seconds).then(() => router.refresh());
+    trackWrite(recordEvent(game.id, id, "assistencia", seconds));
   }
 
   function handleSkipAssist() {
     resetFlow();
   }
 
+  const [isNavigatingAway, setIsNavigatingAway] = useState(false);
+
   function handleEnd() {
     startTransition(async () => {
+      if (pendingWritesRef.current.length > 0) {
+        setIsSyncing(true);
+        await Promise.allSettled(pendingWritesRef.current);
+        setIsSyncing(false);
+      }
       const result = await endLive(game.id);
       if (result.tie && result.peladaId) {
         setTieInfo({ peladaId: result.peladaId });
         return;
       }
+      setIsNavigatingAway(true);
       router.push("/jogos");
     });
   }
@@ -376,6 +393,7 @@ export function AoVivoClient({
     if (!tieInfo) return;
     startTransition(async () => {
       await resolveVencedorFicaTie(tieInfo.peladaId, stayingTeamId, game.id);
+      setIsNavigatingAway(true);
       router.push("/jogos");
     });
   }
@@ -389,6 +407,20 @@ export function AoVivoClient({
   }
 
   const goalEvents = useMemo(() => [...localEvents].reverse(), [localEvents]);
+
+  if (isNavigatingAway) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center gap-4 py-10">
+        <div
+          className="w-10 h-10 rounded-full animate-spin"
+          style={{ border: "3px solid var(--bg3)", borderTopColor: "var(--gold)" }}
+        />
+        <div className="font-[var(--font-head)] font-extrabold text-[15px] uppercase tracking-wide" style={{ color: "var(--gold)" }}>
+          Encerrando jogo...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -458,7 +490,7 @@ export function AoVivoClient({
             className="flex-1 rounded-xl py-3.5 font-[var(--font-head)] font-extrabold text-[14px] uppercase tracking-wide min-h-[44px] disabled:opacity-60"
             style={{ background: "transparent", color: "var(--red)", border: "1.5px solid var(--red)" }}
           >
-            {isPending ? "Encerrando..." : "Encerrar Jogo"}
+            {isSyncing ? "Sincronizando..." : isPending ? "Encerrando..." : "Encerrar Jogo"}
           </button>
         </div>
       )}
