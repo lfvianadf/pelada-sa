@@ -18,6 +18,24 @@ async function requireAdmin() {
   return { player } as const;
 }
 
+export async function updateMyProfile(name: string, position: Position): Promise<ActionResult> {
+  const player = await getCurrentPlayer();
+  if (!player) return { error: "Você precisa estar logado." };
+  if (!name.trim()) return { error: "Informe o nome." };
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("players")
+    .update({ name: name.trim(), position })
+    .eq("id", player.id);
+  if (error) return { error: error.message };
+  revalidatePath("/perfil");
+  revalidatePath("/perfil/editar");
+  revalidatePath("/jogos");
+  revalidatePath("/admin/sorteio");
+  revalidatePath("/ao-vivo");
+  return {};
+}
+
 export async function createPelada(
   date: string,
   numTeams: number,
@@ -198,7 +216,7 @@ export async function mergePlayerAccount(
 
   const { data: duplicate, error: dupErr } = await supabase
     .from("players")
-    .select("user_id")
+    .select("user_id, position")
     .eq("id", duplicatePlayerId)
     .single();
   if (dupErr || !duplicate) return { error: dupErr?.message ?? "Jogador não encontrado." };
@@ -217,11 +235,12 @@ export async function mergePlayerAccount(
 
   const { error: updErr } = await supabase
     .from("players")
-    .update({ user_id: duplicate.user_id })
+    .update({ user_id: duplicate.user_id, position: duplicate.position })
     .eq("id", targetPlayerId);
   if (updErr) return { error: updErr.message };
 
   revalidatePath("/admin/vincular");
+  revalidatePath("/perfil");
   return {};
 }
 

@@ -1,9 +1,11 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentPlayer } from "@/lib/auth";
 import { ScreenContent, ScreenBody } from "@/components/Screen";
 import { TopBar } from "@/components/TopBar";
 import { Stars } from "@/components/Stars";
+import { IconEdit } from "@/components/icons";
 
 function StatCard({ label, value, color, gold }: { label: string; value: number; color?: string; gold?: boolean }) {
   return (
@@ -77,7 +79,20 @@ export default async function PerfilPage() {
 
   return (
     <ScreenContent>
-      <TopBar title="Meu Perfil" />
+      <TopBar
+        title="Meu Perfil"
+        action={
+          <Link
+            href="/perfil/editar"
+            title="Editar Perfil"
+            aria-label="Editar Perfil"
+            className="w-9 h-9 flex items-center justify-center rounded-xl shrink-0"
+            style={{ background: "var(--bg2)", border: "1px solid var(--hairline)", color: "var(--text)" }}
+          >
+            <IconEdit size={16} />
+          </Link>
+        }
+      />
       <ScreenBody>
         <div className="flex flex-col items-center gap-2.5">
           <div

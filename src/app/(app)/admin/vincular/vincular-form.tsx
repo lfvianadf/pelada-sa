@@ -22,8 +22,12 @@ export function VincularForm({
   const [duplicateId, setDuplicateId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [mergedIds, setMergedIds] = useState<Set<number>>(new Set());
 
-  const duplicate = withAccount.find((p) => p.id === duplicateId) ?? null;
+  const visibleWithAccount = withAccount.filter((p) => !mergedIds.has(p.id));
+  const visibleWithoutAccount = withoutAccount.filter((p) => !mergedIds.has(p.id));
+
+  const duplicate = visibleWithAccount.find((p) => p.id === duplicateId) ?? null;
 
   function handlePickDuplicate(id: number) {
     setDuplicateId(id);
@@ -39,6 +43,7 @@ export function VincularForm({
         setError(result.error);
         return;
       }
+      setMergedIds((prev) => new Set(prev).add(duplicateId).add(targetId));
       setDuplicateId(null);
       setStep("pickDuplicate");
       router.refresh();
@@ -57,12 +62,12 @@ export function VincularForm({
           <div className="text-[10px] font-bold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
             1. Escolha a conta recém-criada (duplicada)
           </div>
-          {withAccount.length === 0 && (
+          {visibleWithAccount.length === 0 && (
             <div className="text-center text-[13px] py-4" style={{ color: "var(--muted2)" }}>
               Nenhuma conta com registro próprio ainda.
             </div>
           )}
-          {withAccount.map((p) => (
+          {visibleWithAccount.map((p) => (
             <button
               key={p.id}
               onClick={() => handlePickDuplicate(p.id)}
@@ -92,12 +97,12 @@ export function VincularForm({
           <div className="text-[10px] font-bold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
             2. Qual jogador pré-cadastrado é <span style={{ color: "var(--gold)" }}>{duplicate.name}</span>?
           </div>
-          {withoutAccount.length === 0 && (
+          {visibleWithoutAccount.length === 0 && (
             <div className="text-center text-[13px] py-4" style={{ color: "var(--muted2)" }}>
               Nenhum jogador pré-cadastrado sem conta.
             </div>
           )}
-          {withoutAccount.map((p) => (
+          {visibleWithoutAccount.map((p) => (
             <button
               key={p.id}
               onClick={() => handleConfirmMerge(p.id)}
