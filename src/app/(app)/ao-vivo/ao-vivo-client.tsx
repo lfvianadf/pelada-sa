@@ -294,6 +294,7 @@ export function AoVivoClient({
   const [side, setSide] = useState<"A" | "B" | null>(null);
   const [scorerId, setScorerId] = useState<number | null>(null);
   const [awaitingTieChoice, setAwaitingTieChoice] = useState(false);
+  const [endGameError, setEndGameError] = useState<string | null>(null);
   const [confirmingReset, setConfirmingReset] = useState(false);
   const [localEvents, setLocalEvents] = useState<MatchEventRow[]>(events);
   const [syncedEvents, setSyncedEvents] = useState(events);
@@ -373,6 +374,7 @@ export function AoVivoClient({
   const [isNavigatingAway, setIsNavigatingAway] = useState(false);
 
   function handleEnd() {
+    setEndGameError(null);
     startTransition(async () => {
       if (pendingWritesRef.current.length > 0) {
         setIsSyncing(true);
@@ -381,7 +383,10 @@ export function AoVivoClient({
       }
 
       const outcome = await checkGameOutcome(game.id);
-      if (outcome.error) return;
+      if (outcome.error) {
+        setEndGameError(outcome.error);
+        return;
+      }
 
       if (outcome.tie) {
         setAwaitingTieChoice(true);
@@ -389,16 +394,23 @@ export function AoVivoClient({
       }
 
       const result = await endLive(game.id);
-      if (result.error) return;
+      if (result.error) {
+        setEndGameError(result.error);
+        return;
+      }
       setIsNavigatingAway(true);
       router.push("/jogos");
     });
   }
 
   function handleResolveTie(stayingTeamId: number) {
+    setEndGameError(null);
     startTransition(async () => {
       const result = await endLive(game.id, stayingTeamId);
-      if (result.error) return;
+      if (result.error) {
+        setEndGameError(result.error);
+        return;
+      }
       setIsNavigatingAway(true);
       router.push("/jogos");
     });
@@ -479,6 +491,12 @@ export function AoVivoClient({
           ))}
         </div>
       </div>
+
+      {isAdmin && endGameError && !awaitingTieChoice && (
+        <div className="px-5 pb-2 text-center text-[12px] font-semibold" style={{ color: "var(--red)" }}>
+          {endGameError}
+        </div>
+      )}
 
       {isAdmin && (
         <div className="px-5 pt-3.5 pb-5 flex gap-2.5" style={{ borderTop: "1px solid var(--hairline)" }}>
@@ -570,6 +588,11 @@ export function AoVivoClient({
             <div className="text-center text-[13px]" style={{ color: "var(--muted)" }}>
               O time escolhido continua em quadra contra o próximo da fila.
             </div>
+            {endGameError && (
+              <div className="text-center text-[12px] font-semibold" style={{ color: "var(--red)" }}>
+                {endGameError}
+              </div>
+            )}
             <div className="flex flex-col gap-2.5">
               <button
                 onClick={() => handleResolveTie(teamA.id)}
