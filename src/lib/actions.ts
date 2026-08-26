@@ -481,7 +481,38 @@ export async function recordEvent(
   return {};
 }
 
-export async function endLive(gameId: number): Promise<ActionResult & { tie?: boolean; peladaId?: number }> {
+export async function checkGameOutcome(
+  gameId: number,
+): Promise<ActionResult & { tie?: boolean; teamAId?: number; teamBId?: number }> {
+  const check = await requireAdmin();
+  if ("error" in check) return check;
+  const supabase = await createClient();
+
+  const { data: game, error: gameErr } = await supabase
+    .from("games")
+    .select("id, team_a_id, team_b_id")
+    .eq("id", gameId)
+    .single();
+  if (gameErr || !game) return { error: gameErr?.message ?? "Jogo não encontrado." };
+
+  const { data: events, error: eventsErr } = await supabase
+    .from("match_events")
+    .select("player_id, type")
+    .eq("game_id", gameId);
+  if (eventsErr) return { error: eventsErr.message };
+
+  const { data: teamAPlayers } = await supabase.from("team_players").select("player_id").eq("team_id", game.team_a_id);
+  const { data: teamBPlayers } = await supabase.from("team_players").select("player_id").eq("team_id", game.team_b_id);
+  const aIds = new Set((teamAPlayers ?? []).map((p) => p.player_id));
+  const bIds = new Set((teamBPlayers ?? []).map((p) => p.player_id));
+
+  const scoreA = (events ?? []).filter((e) => e.type === "gol" && aIds.has(e.player_id)).length;
+  const scoreB = (events ?? []).filter((e) => e.type === "gol" && bIds.has(e.player_id)).length;
+
+  return { tie: scoreA === scoreB, teamAId: game.team_a_id, teamBId: game.team_b_id };
+}
+
+export async function endLive(gameId: number, stayingTeamId?: number): Promise<ActionResult> {
   const check = await requireAdmin();
   if ("error" in check) return check;
   const supabase = await createClient();
@@ -506,6 +537,11 @@ export async function endLive(gameId: number): Promise<ActionResult & { tie?: bo
 
   const scoreA = (events ?? []).filter((e) => e.type === "gol" && aIds.has(e.player_id)).length;
   const scoreB = (events ?? []).filter((e) => e.type === "gol" && bIds.has(e.player_id)).length;
+  const isTie = scoreA === scoreB;
+
+  if (isTie && stayingTeamId !== undefined && stayingTeamId !== game.team_a_id && stayingTeamId !== game.team_b_id) {
+    return { error: "Time inválido para esse jogo." };
+  }
 
   const { error: updGameErr } = await supabase
     .from("games")
@@ -533,12 +569,16 @@ export async function endLive(gameId: number): Promise<ActionResult & { tie?: bo
 
   const { data: pelada } = await supabase.from("peladas").select("format").eq("id", game.pelada_id).single();
   if (pelada?.format === "vencedor_fica") {
-    if (scoreA === scoreB) {
-      revalidatePath("/jogos");
-      return { tie: true, peladaId: game.pelada_id };
+    let winnerTeamId: number;
+    let loserTeamId: number;
+    if (isTie) {
+      if (stayingTeamId === undefined) return { error: "Empate: é preciso escolher qual time fica." };
+      winnerTeamId = stayingTeamId;
+      loserTeamId = stayingTeamId === game.team_a_id ? game.team_b_id : game.team_a_id;
+    } else {
+      winnerTeamId = scoreA > scoreB ? game.team_a_id : game.team_b_id;
+      loserTeamId = scoreA > scoreB ? game.team_b_id : game.team_a_id;
     }
-    const winnerTeamId = scoreA > scoreB ? game.team_a_id : game.team_b_id;
-    const loserTeamId = scoreA > scoreB ? game.team_b_id : game.team_a_id;
     const nextResult = await advanceVencedorFicaQueue(game.pelada_id, winnerTeamId, loserTeamId);
     if (nextResult.error) return { error: nextResult.error };
   }
@@ -583,31 +623,6 @@ async function advanceVencedorFicaQueue(
   }
   await supabase.from("teams").update({ queue_order: rest.length + 1 }).eq("id", loserTeamId);
 
-  return {};
-}
-
-export async function resolveVencedorFicaTie(peladaId: number, stayingTeamId: number, gameId: number): Promise<ActionResult> {
-  const check = await requireAdmin();
-  if ("error" in check) return check;
-  const supabase = await createClient();
-
-  const { data: game, error: gameErr } = await supabase
-    .from("games")
-    .select("team_a_id, team_b_id")
-    .eq("id", gameId)
-    .single();
-  if (gameErr || !game) return { error: gameErr?.message ?? "Jogo não encontrado." };
-
-  if (stayingTeamId !== game.team_a_id && stayingTeamId !== game.team_b_id) {
-    return { error: "Time inválido para esse jogo." };
-  }
-  const otherTeamId = stayingTeamId === game.team_a_id ? game.team_b_id : game.team_a_id;
-
-  const result = await advanceVencedorFicaQueue(peladaId, stayingTeamId, otherTeamId);
-  if (result.error) return result;
-
-  revalidatePath("/ao-vivo");
-  revalidatePath("/jogos");
   return {};
 }
 

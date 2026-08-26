@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { teamColor, fmtClock, type GameRow, type PlayerRow, type TeamRow, type MatchEventRow } from "@/lib/domain";
-import { recordEvent, endLive, resolveVencedorFicaTie, resetLiveGame } from "@/lib/actions";
+import { recordEvent, checkGameOutcome, endLive, resetLiveGame } from "@/lib/actions";
 
 type Step = "closed" | "team" | "scorer" | "assist" | "borrowed-scorer" | "borrowed-assist";
 
@@ -293,7 +293,7 @@ export function AoVivoClient({
   const [step, setStep] = useState<Step>("closed");
   const [side, setSide] = useState<"A" | "B" | null>(null);
   const [scorerId, setScorerId] = useState<number | null>(null);
-  const [tieInfo, setTieInfo] = useState<{ peladaId: number } | null>(null);
+  const [awaitingTieChoice, setAwaitingTieChoice] = useState(false);
   const [confirmingReset, setConfirmingReset] = useState(false);
   const [localEvents, setLocalEvents] = useState<MatchEventRow[]>(events);
   const [syncedEvents, setSyncedEvents] = useState(events);
@@ -379,20 +379,26 @@ export function AoVivoClient({
         await Promise.allSettled(pendingWritesRef.current);
         setIsSyncing(false);
       }
-      const result = await endLive(game.id);
-      if (result.tie && result.peladaId) {
-        setTieInfo({ peladaId: result.peladaId });
+
+      const outcome = await checkGameOutcome(game.id);
+      if (outcome.error) return;
+
+      if (outcome.tie) {
+        setAwaitingTieChoice(true);
         return;
       }
+
+      const result = await endLive(game.id);
+      if (result.error) return;
       setIsNavigatingAway(true);
       router.push("/jogos");
     });
   }
 
   function handleResolveTie(stayingTeamId: number) {
-    if (!tieInfo) return;
     startTransition(async () => {
-      await resolveVencedorFicaTie(tieInfo.peladaId, stayingTeamId, game.id);
+      const result = await endLive(game.id, stayingTeamId);
+      if (result.error) return;
       setIsNavigatingAway(true);
       router.push("/jogos");
     });
@@ -551,7 +557,7 @@ export function AoVivoClient({
         scorer={scorer}
       />
 
-      {tieInfo && (
+      {awaitingTieChoice && (
         <div className="fixed inset-0 z-50 flex items-end justify-center" style={{ background: "rgba(0,0,0,.6)" }}>
           <div
             className="w-full max-w-[480px] rounded-t-[28px] p-5 pb-8 flex flex-col gap-4"
