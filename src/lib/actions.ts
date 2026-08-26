@@ -235,7 +235,7 @@ export async function mergePlayerAccount(
 
   const { error: updErr } = await supabase
     .from("players")
-    .update({ user_id: duplicate.user_id, position: duplicate.position })
+    .update({ user_id: duplicate.user_id, position: duplicate.position, merge_confirmed: true })
     .eq("id", targetPlayerId);
   if (updErr) return { error: updErr.message };
 

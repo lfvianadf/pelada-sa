@@ -182,6 +182,7 @@ export type Database = {
           goals: number
           id: number
           is_admin: boolean
+          merge_confirmed: boolean
           name: string
           photo_url: string | null
           position: Database["public"]["Enums"]["position_type"]
@@ -197,6 +198,7 @@ export type Database = {
           goals?: number
           id?: never
           is_admin?: boolean
+          merge_confirmed?: boolean
           name: string
           photo_url?: string | null
           position?: Database["public"]["Enums"]["position_type"]
@@ -212,6 +214,7 @@ export type Database = {
           goals?: number
           id?: never
           is_admin?: boolean
+          merge_confirmed?: boolean
           name?: string
           photo_url?: string | null
           position?: Database["public"]["Enums"]["position_type"]

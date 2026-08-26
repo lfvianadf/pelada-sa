@@ -13,7 +13,7 @@ export default async function VincularPage() {
   const supabase = await createClient();
   const { data: players } = await supabase.from("players").select("*").order("name");
 
-  const withAccount = (players ?? []).filter((p) => p.user_id);
+  const withAccount = (players ?? []).filter((p) => p.user_id && !p.merge_confirmed);
   const withoutAccount = (players ?? []).filter((p) => !p.user_id);
 
   return (
