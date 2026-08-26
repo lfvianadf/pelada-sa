@@ -493,37 +493,25 @@ export async function endLive(gameId: number): Promise<ActionResult & { tie?: bo
   const winnerIds = scoreA > scoreB ? aIds : scoreB > scoreA ? bIds : new Set<number>();
   const allPlayerIds = new Set<number>([...aIds, ...bIds]);
 
-  for (const playerId of allPlayerIds) {
-    const goals = (events ?? []).filter((e) => e.player_id === playerId && e.type === "gol").length;
-    const assists = (events ?? []).filter((e) => e.player_id === playerId && e.type === "assistencia").length;
-    const won = winnerIds.has(playerId);
+  const statUpdates = Array.from(allPlayerIds).map((playerId) => ({
+    player_id: playerId,
+    goals: (events ?? []).filter((e) => e.player_id === playerId && e.type === "gol").length,
+    assists: (events ?? []).filter((e) => e.player_id === playerId && e.type === "assistencia").length,
+    won: winnerIds.has(playerId) ? 1 : 0,
+  }));
 
-    const { data: player } = await supabase
-      .from("players")
-      .select("goals, assists, games, wins")
-      .eq("id", playerId)
-      .single();
-    if (!player) continue;
-
-    await supabase
-      .from("players")
-      .update({
-        goals: player.goals + goals,
-        assists: player.assists + assists,
-        games: player.games + 1,
-        wins: player.wins + (won ? 1 : 0),
-      })
-      .eq("id", playerId);
+  if (statUpdates.length > 0) {
+    const { error: statsErr } = await supabase.rpc("increment_player_stats", { updates: statUpdates });
+    if (statsErr) return { error: statsErr.message };
   }
 
-  revalidatePath("/ao-vivo");
-  revalidatePath("/jogos");
   revalidatePath("/dashboard");
   revalidatePath("/perfil");
 
   const { data: pelada } = await supabase.from("peladas").select("format").eq("id", game.pelada_id).single();
   if (pelada?.format === "vencedor_fica") {
     if (scoreA === scoreB) {
+      revalidatePath("/jogos");
       return { tie: true, peladaId: game.pelada_id };
     }
     const winnerTeamId = scoreA > scoreB ? game.team_a_id : game.team_b_id;
@@ -531,6 +519,9 @@ export async function endLive(gameId: number): Promise<ActionResult & { tie?: bo
     const nextResult = await advanceVencedorFicaQueue(game.pelada_id, winnerTeamId, loserTeamId);
     if (nextResult.error) return { error: nextResult.error };
   }
+
+  revalidatePath("/ao-vivo");
+  revalidatePath("/jogos");
 
   return {};
 }

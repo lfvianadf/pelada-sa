@@ -71,7 +71,6 @@ function GoalFlowSheet({
   onSkipAssist,
   onClose,
   scorer,
-  isPending,
 }: {
   step: Step;
   teamA: TeamRow;
@@ -85,7 +84,6 @@ function GoalFlowSheet({
   onSkipAssist: () => void;
   onClose: () => void;
   scorer: PlayerRow | null;
-  isPending: boolean;
 }) {
   if (step === "closed") return null;
 
@@ -162,8 +160,7 @@ function GoalFlowSheet({
                     <button
                       key={id}
                       onClick={() => onPickAssist(id)}
-                      disabled={isPending}
-                      className="rounded-xl py-3.5 px-4 text-left font-bold text-[15px] min-h-[44px] disabled:opacity-60"
+                      className="rounded-xl py-3.5 px-4 text-left font-bold text-[15px] min-h-[44px]"
                       style={{ background: "var(--bg2)", border: "1px solid var(--hairline)" }}
                     >
                       {p.name}
@@ -172,11 +169,10 @@ function GoalFlowSheet({
                 })}
               <button
                 onClick={onSkipAssist}
-                disabled={isPending}
-                className="rounded-xl py-3.5 mt-1 font-[var(--font-head)] font-extrabold text-[13px] uppercase tracking-wide min-h-[44px] disabled:opacity-60"
+                className="rounded-xl py-3.5 mt-1 font-[var(--font-head)] font-extrabold text-[13px] uppercase tracking-wide min-h-[44px]"
                 style={{ background: "transparent", color: "var(--muted)", border: "1px solid var(--hairline)" }}
               >
-                {isPending ? "Salvando..." : "Sem assistência"}
+                Sem assistência
               </button>
             </div>
           </>
@@ -217,6 +213,13 @@ export function AoVivoClient({
   const [scorerId, setScorerId] = useState<number | null>(null);
   const [tieInfo, setTieInfo] = useState<{ peladaId: number } | null>(null);
   const [confirmingReset, setConfirmingReset] = useState(false);
+  const [localEvents, setLocalEvents] = useState<MatchEventRow[]>(events);
+  const [syncedEvents, setSyncedEvents] = useState(events);
+
+  if (events !== syncedEvents) {
+    setSyncedEvents(events);
+    setLocalEvents(events);
+  }
 
   useEffect(() => {
     if (!game.started_at) return;
@@ -236,8 +239,8 @@ export function AoVivoClient({
     return players.find((p) => p.id === id);
   }
 
-  const scoreA = events.filter((e) => e.type === "gol" && teamAPlayerIds.includes(e.player_id)).length;
-  const scoreB = events.filter((e) => e.type === "gol" && teamBPlayerIds.includes(e.player_id)).length;
+  const scoreA = localEvents.filter((e) => e.type === "gol" && teamAPlayerIds.includes(e.player_id)).length;
+  const scoreB = localEvents.filter((e) => e.type === "gol" && teamBPlayerIds.includes(e.player_id)).length;
 
   const scorer = scorerId ? player(scorerId) ?? null : null;
   const sidePlayerIds = side === "A" ? teamAPlayerIds : side === "B" ? teamBPlayerIds : [];
@@ -255,19 +258,21 @@ export function AoVivoClient({
 
   function handlePickScorer(id: number) {
     setScorerId(id);
-    startTransition(async () => {
-      await recordEvent(game.id, id, "gol", seconds);
-      router.refresh();
-      setStep("assist");
-    });
+    setLocalEvents((prev) => [
+      ...prev,
+      { id: -Date.now(), game_id: game.id, player_id: id, type: "gol", sec: seconds, created_at: new Date().toISOString() },
+    ]);
+    setStep("assist");
+    recordEvent(game.id, id, "gol", seconds).then(() => router.refresh());
   }
 
   function handlePickAssist(id: number) {
-    startTransition(async () => {
-      await recordEvent(game.id, id, "assistencia", seconds);
-      router.refresh();
-      resetFlow();
-    });
+    setLocalEvents((prev) => [
+      ...prev,
+      { id: -Date.now(), game_id: game.id, player_id: id, type: "assistencia", sec: seconds, created_at: new Date().toISOString() },
+    ]);
+    resetFlow();
+    recordEvent(game.id, id, "assistencia", seconds).then(() => router.refresh());
   }
 
   function handleSkipAssist() {
@@ -301,7 +306,7 @@ export function AoVivoClient({
     });
   }
 
-  const goalEvents = useMemo(() => [...events].reverse(), [events]);
+  const goalEvents = useMemo(() => [...localEvents].reverse(), [localEvents]);
 
   return (
     <>
@@ -429,7 +434,6 @@ export function AoVivoClient({
         onSkipAssist={handleSkipAssist}
         onClose={resetFlow}
         scorer={scorer}
-        isPending={isPending}
       />
 
       {tieInfo && (

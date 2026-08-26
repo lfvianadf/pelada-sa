@@ -321,7 +321,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      increment_player_stats: {
+        Args: { updates: Json }
+        Returns: undefined
+      }
     }
     Enums: {
       event_type: "gol" | "assistencia"
