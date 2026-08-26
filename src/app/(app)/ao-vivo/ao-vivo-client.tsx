@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { teamColor, fmtClock, type GameRow, type PlayerRow, type TeamRow, type MatchEventRow } from "@/lib/domain";
 import { recordEvent, endLive, resolveVencedorFicaTie, resetLiveGame } from "@/lib/actions";
 
-type Step = "closed" | "team" | "scorer" | "assist";
+type Step = "closed" | "team" | "scorer" | "assist" | "borrowed-scorer" | "borrowed-assist";
 
 function StopwatchDial({ seconds, durationSeconds }: { seconds: number; durationSeconds: number }) {
   const size = 220;
@@ -60,6 +60,7 @@ function StopwatchDial({ seconds, durationSeconds }: { seconds: number; duration
 
 function GoalFlowSheet({
   step,
+  setStep,
   teamA,
   teamB,
   teamAPlayerIds,
@@ -73,6 +74,7 @@ function GoalFlowSheet({
   scorer,
 }: {
   step: Step;
+  setStep: (step: Step) => void;
   teamA: TeamRow;
   teamB: TeamRow;
   teamAPlayerIds: number[];
@@ -140,6 +142,47 @@ function GoalFlowSheet({
                   </button>
                 );
               })}
+              <button
+                onClick={() => setStep("borrowed-scorer")}
+                className="rounded-xl py-3.5 mt-1 font-[var(--font-head)] font-extrabold text-[13px] uppercase tracking-wide min-h-[44px]"
+                style={{ background: "transparent", color: "var(--gold)", border: "1px dashed var(--bgold)" }}
+              >
+                Jogador emprestado
+              </button>
+            </div>
+          </>
+        )}
+
+        {step === "borrowed-scorer" && (
+          <>
+            <div className="font-[var(--font-head)] font-extrabold text-[18px] uppercase tracking-wide text-center">
+              Qual jogador emprestado marcou?
+            </div>
+            <div className="flex flex-col gap-2">
+              {players
+                .filter((p) => !teamAPlayerIds.includes(p.id) && !teamBPlayerIds.includes(p.id))
+                .map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => onPickScorer(p.id)}
+                    className="rounded-xl py-3.5 px-4 text-left font-bold text-[15px] min-h-[44px]"
+                    style={{ background: "var(--bg2)", border: "1px solid var(--hairline)" }}
+                  >
+                    {p.name}
+                  </button>
+                ))}
+              {players.filter((p) => !teamAPlayerIds.includes(p.id) && !teamBPlayerIds.includes(p.id)).length === 0 && (
+                <div className="text-center text-[13px] py-4" style={{ color: "var(--muted2)" }}>
+                  Nenhum outro jogador presente na pelada.
+                </div>
+              )}
+              <button
+                onClick={() => setStep("scorer")}
+                className="rounded-xl py-3.5 mt-1 font-[var(--font-head)] font-extrabold text-[13px] uppercase tracking-wide min-h-[44px]"
+                style={{ background: "transparent", color: "var(--muted)", border: "1px solid var(--hairline)" }}
+              >
+                ‹ Voltar
+              </button>
             </div>
           </>
         )}
@@ -168,11 +211,50 @@ function GoalFlowSheet({
                   );
                 })}
               <button
+                onClick={() => setStep("borrowed-assist")}
+                className="rounded-xl py-3.5 font-[var(--font-head)] font-extrabold text-[13px] uppercase tracking-wide min-h-[44px]"
+                style={{ background: "transparent", color: "var(--gold)", border: "1px dashed var(--bgold)" }}
+              >
+                Jogador emprestado
+              </button>
+              <button
                 onClick={onSkipAssist}
                 className="rounded-xl py-3.5 mt-1 font-[var(--font-head)] font-extrabold text-[13px] uppercase tracking-wide min-h-[44px]"
                 style={{ background: "transparent", color: "var(--muted)", border: "1px solid var(--hairline)" }}
               >
                 Sem assistência
+              </button>
+            </div>
+          </>
+        )}
+
+        {step === "borrowed-assist" && scorer && (
+          <>
+            <div className="font-[var(--font-head)] font-extrabold text-[18px] uppercase tracking-wide text-center">
+              Qual jogador emprestado deu assistência?
+            </div>
+            <div className="text-center text-[13px] font-semibold" style={{ color: "var(--muted)" }}>
+              Gol de {scorer.name}
+            </div>
+            <div className="flex flex-col gap-2">
+              {players
+                .filter((p) => !teamAPlayerIds.includes(p.id) && !teamBPlayerIds.includes(p.id) && p.id !== scorer.id)
+                .map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => onPickAssist(p.id)}
+                    className="rounded-xl py-3.5 px-4 text-left font-bold text-[15px] min-h-[44px]"
+                    style={{ background: "var(--bg2)", border: "1px solid var(--hairline)" }}
+                  >
+                    {p.name}
+                  </button>
+                ))}
+              <button
+                onClick={() => setStep("assist")}
+                className="rounded-xl py-3.5 mt-1 font-[var(--font-head)] font-extrabold text-[13px] uppercase tracking-wide min-h-[44px]"
+                style={{ background: "transparent", color: "var(--muted)", border: "1px solid var(--hairline)" }}
+              >
+                ‹ Voltar
               </button>
             </div>
           </>
@@ -423,6 +505,7 @@ export function AoVivoClient({
 
       <GoalFlowSheet
         step={step}
+        setStep={setStep}
         teamA={teamA}
         teamB={teamB}
         teamAPlayerIds={sidePlayerIds.length ? sidePlayerIds : teamAPlayerIds}

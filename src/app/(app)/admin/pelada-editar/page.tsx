@@ -36,7 +36,7 @@ export default async function PeladaEditarPage({
 
   const { data: peladaRow, error } = await supabase
     .from("peladas")
-    .select("id, date, duration_minutes, format")
+    .select("id, date, duration_minutes, format, finished")
     .eq("id", peladaId)
     .single();
 

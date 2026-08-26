@@ -56,15 +56,19 @@ export default async function AoVivoPage() {
     supabase.from("teams").select("*").eq("id", liveGame.team_b_id).single(),
   ]);
 
-  const [{ data: teamAPlayers }, { data: teamBPlayers }] = await Promise.all([
+  const [{ data: teamAPlayers }, { data: teamBPlayers }, { data: presence }] = await Promise.all([
     supabase.from("team_players").select("player_id").eq("team_id", liveGame.team_a_id),
     supabase.from("team_players").select("player_id").eq("team_id", liveGame.team_b_id),
+    supabase.from("pelada_presence").select("player_id").eq("pelada_id", liveGame.pelada_id),
   ]);
 
-  const playerIds = [
-    ...(teamAPlayers ?? []).map((p) => p.player_id),
-    ...(teamBPlayers ?? []).map((p) => p.player_id),
-  ];
+  const playerIds = Array.from(
+    new Set([
+      ...(teamAPlayers ?? []).map((p) => p.player_id),
+      ...(teamBPlayers ?? []).map((p) => p.player_id),
+      ...(presence ?? []).map((p) => p.player_id),
+    ]),
+  );
   const { data: players } = playerIds.length > 0 ? await supabase.from("players").select("*").in("id", playerIds) : { data: [] };
   const { data: events } = await supabase.from("match_events").select("*").eq("game_id", liveGame.id).order("id");
 

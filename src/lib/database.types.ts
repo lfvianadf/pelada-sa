@@ -149,6 +149,7 @@ export type Database = {
           created_at: string
           date: string
           duration_minutes: number
+          finished: boolean
           format: Database["public"]["Enums"]["pelada_format"]
           id: number
           num_teams: number
@@ -157,6 +158,7 @@ export type Database = {
           created_at?: string
           date: string
           duration_minutes?: number
+          finished?: boolean
           format?: Database["public"]["Enums"]["pelada_format"]
           id?: never
           num_teams?: number
@@ -165,6 +167,7 @@ export type Database = {
           created_at?: string
           date?: string
           duration_minutes?: number
+          finished?: boolean
           format?: Database["public"]["Enums"]["pelada_format"]
           id?: never
           num_teams?: number

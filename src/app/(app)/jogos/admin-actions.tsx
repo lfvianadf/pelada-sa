@@ -1,7 +1,15 @@
 import Link from "next/link";
 import { IconPlus, IconUsers, IconLink, IconEdit } from "@/components/icons";
 
-export function AdminActions({ peladaId, hasTeams }: { peladaId: number | null; hasTeams: boolean }) {
+export function AdminActions({
+  peladaId,
+  hasTeams,
+  isFinished,
+}: {
+  peladaId: number | null;
+  hasTeams: boolean;
+  isFinished: boolean;
+}) {
   return (
     <div className="flex gap-2.5">
       <Link
@@ -24,7 +32,7 @@ export function AdminActions({ peladaId, hasTeams }: { peladaId: number | null; 
           <IconEdit size={18} />
         </Link>
       )}
-      {peladaId && hasTeams && (
+      {peladaId && hasTeams && !isFinished && (
         <Link
           href={`/admin/sorteio?pelada=${peladaId}`}
           title="Configurar Times"

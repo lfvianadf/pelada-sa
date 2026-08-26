@@ -46,6 +46,29 @@ export async function createPelada(
   return { peladaId: data.id };
 }
 
+export async function finishPelada(peladaId: number): Promise<ActionResult> {
+  const check = await requireAdmin();
+  if ("error" in check) return check;
+  const supabase = await createClient();
+  const { error } = await supabase.from("peladas").update({ finished: true }).eq("id", peladaId);
+  if (error) return { error: error.message };
+  revalidatePath("/jogos");
+  revalidatePath("/admin/pelada-editar");
+  revalidatePath("/dashboard");
+  return {};
+}
+
+export async function reopenPelada(peladaId: number): Promise<ActionResult> {
+  const check = await requireAdmin();
+  if ("error" in check) return check;
+  const supabase = await createClient();
+  const { error } = await supabase.from("peladas").update({ finished: false }).eq("id", peladaId);
+  if (error) return { error: error.message };
+  revalidatePath("/jogos");
+  revalidatePath("/admin/pelada-editar");
+  return {};
+}
+
 export async function deletePelada(peladaId: number): Promise<ActionResult> {
   const check = await requireAdmin();
   if ("error" in check) return check;

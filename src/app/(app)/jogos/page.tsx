@@ -27,7 +27,7 @@ export default async function JogosPage({
     ? await Promise.all([
         supabase.from("games").select("*").eq("pelada_id", peladaId).order("id"),
         supabase.from("teams").select("*").eq("pelada_id", peladaId).order("queue_order"),
-        supabase.from("peladas").select("format").eq("id", peladaId).single(),
+        supabase.from("peladas").select("format, finished").eq("id", peladaId).single(),
       ])
     : [{ data: [] }, { data: [] }, { data: null }];
 
@@ -43,6 +43,7 @@ export default async function JogosPage({
   const standings = standingsFor(games ?? [], teams ?? []);
   const hasTeams = (teams ?? []).length > 0;
   const format = peladaRow?.format ?? "todos_contra_todos";
+  const isFinished = peladaRow?.finished ?? false;
   const queuedTeams = (teams ?? []).filter((t) => t.queue_order !== null);
 
   return (
@@ -53,7 +54,16 @@ export default async function JogosPage({
           <PeladaSelector peladas={peladas ?? []} selectedId={peladaId ?? null} isAdmin={me.is_admin} />
         )}
 
-        {me.is_admin && <AdminActions peladaId={peladaId ?? null} hasTeams={hasTeams} />}
+        {peladaId && isFinished && (
+          <div
+            className="rounded-xl px-4 py-2.5 text-center text-[11px] font-bold uppercase tracking-wide"
+            style={{ background: "oklch(0.72 0.17 148 / .12)", color: "var(--green)", border: "1px solid oklch(0.72 0.17 148 / .3)" }}
+          >
+            Pelada encerrada
+          </div>
+        )}
+
+        {me.is_admin && <AdminActions peladaId={peladaId ?? null} hasTeams={hasTeams} isFinished={isFinished} />}
 
         {!peladaId && (
           <div className="text-center text-[13px] py-6" style={{ color: "var(--muted2)" }}>
@@ -66,7 +76,7 @@ export default async function JogosPage({
             games={games ?? []}
             teams={teams ?? []}
             standings={standings}
-            isAdmin={me.is_admin}
+            isAdmin={me.is_admin && !isFinished}
             format={format}
             liveEvents={liveEvents ?? []}
             teamPlayers={teamPlayers ?? []}
