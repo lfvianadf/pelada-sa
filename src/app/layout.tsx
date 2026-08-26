@@ -15,7 +15,7 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "Esporte SA",
+  title: "Pelada de Santo Afonso",
   description: "Pastoral do Esporte — gestão da pelada semanal",
 };
 

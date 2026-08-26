@@ -129,3 +129,11 @@ export function IconDownload({ size = 18, color = "currentColor" }: IconProps) {
     </svg>
   );
 }
+
+export function IconPlay({ size = 22, color = "currentColor" }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={color} stroke="none">
+      <path d="M7 4.5v15l13-7.5Z" />
+    </svg>
+  );
+}

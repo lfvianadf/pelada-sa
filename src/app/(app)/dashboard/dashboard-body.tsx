@@ -161,7 +161,7 @@ export function DashboardBody({
       <div style={{ position: "fixed", top: 0, left: "-9999px", pointerEvents: "none" }}>
         <div ref={exportRef} className="flex flex-col gap-5 p-6" style={{ background: "var(--bg)", width: 480 }}>
           <div className="text-center font-[var(--font-head)] font-extrabold text-[22px] uppercase tracking-wide">
-            Raio-X da Pelada <span style={{ color: "var(--gold)" }}>· Esporte SA</span>
+            Raio-X da Pelada <span style={{ color: "var(--gold)" }}>· Santo Afonso</span>
           </div>
           {content}
         </div>

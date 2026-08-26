@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentPlayer } from "@/lib/auth";
 import { ScreenContent } from "@/components/Screen";
 import { TopBar } from "@/components/TopBar";
+import { IconWhistle } from "@/components/icons";
 import { AoVivoClient } from "./ao-vivo-client";
 import { AoVivoStartList } from "./ao-vivo-start-list";
 
@@ -39,10 +40,25 @@ export default async function AoVivoPage() {
     return (
       <ScreenContent>
         <TopBar title="Registro Ao Vivo" />
-        <div className="flex-1 flex flex-col px-5 py-6 gap-4">
-          <div className="text-center text-[13px] py-2.5" style={{ color: "var(--muted)" }}>
-            Nenhum jogo ao vivo. {me.is_admin ? "Inicie um confronto agendado:" : "Aguarde um administrador iniciar um jogo."}
-          </div>
+        <div className="flex-1 flex flex-col px-5 py-6 gap-6">
+          {scheduled.length === 0 && (
+            <div className="flex flex-col items-center gap-3 py-8">
+              <div
+                className="w-16 h-16 rounded-full flex items-center justify-center"
+                style={{ background: "var(--bg2)", border: "2px solid var(--hairline)", color: "var(--muted2)" }}
+              >
+                <IconWhistle size={28} />
+              </div>
+              <div className="text-center text-[13px]" style={{ color: "var(--muted)" }}>
+                {me.is_admin ? "Nenhum confronto agendado ainda." : "Aguarde um administrador iniciar um jogo."}
+              </div>
+            </div>
+          )}
+          {scheduled.length > 0 && (
+            <div className="text-center text-[11px] font-bold uppercase tracking-wide" style={{ color: "var(--muted)" }}>
+              {me.is_admin ? "Toque para iniciar" : "Aguardando início"}
+            </div>
+          )}
           {me.is_admin && (
             <AoVivoStartList scheduled={scheduled} teams={teams ?? []} />
           )}

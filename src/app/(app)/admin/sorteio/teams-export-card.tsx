@@ -18,7 +18,7 @@ export function TeamsExportCard({
   return (
     <div className="flex flex-col gap-4 p-6" style={{ background: "var(--bg)", width: 480 }}>
       <div className="text-center font-[var(--font-head)] font-extrabold text-[22px] uppercase tracking-wide">
-        Times Sorteados <span style={{ color: "var(--gold)" }}>· Esporte SA</span>
+        Times Sorteados <span style={{ color: "var(--gold)" }}>· Santo Afonso</span>
       </div>
       {teams.map((t) => {
         const color = teamColor(t.hue);

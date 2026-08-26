@@ -33,8 +33,8 @@ export default function LoginPage() {
           >
             SA
           </div>
-          <div className="font-[var(--font-head)] font-extrabold text-[34px] leading-none uppercase tracking-wide">
-            Esporte <span style={{ color: "var(--gold)" }}>SA</span>
+          <div className="font-[var(--font-head)] font-extrabold text-[30px] leading-none uppercase tracking-wide text-center">
+            Pelada de <span style={{ color: "var(--gold)" }}>Santo Afonso</span>
           </div>
           <div className="text-[11px] font-semibold uppercase tracking-[2px]" style={{ color: "var(--muted)" }}>
             Pastoral do Esporte
@@ -97,7 +97,7 @@ export default function LoginPage() {
         </div>
 
         <div className="text-center text-[11px] font-medium" style={{ color: "var(--muted2)" }}>
-          Pelada de sábado às 16h · Campo da Paróquia
+          Toda terça às 21h · Real Society
         </div>
       </div>
     </Screen>

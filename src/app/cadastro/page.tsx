@@ -56,8 +56,8 @@ export default function CadastroPage() {
           >
             SA
           </div>
-          <div className="font-[var(--font-head)] font-extrabold text-[34px] leading-none uppercase tracking-wide">
-            Esporte <span style={{ color: "var(--gold)" }}>SA</span>
+          <div className="font-[var(--font-head)] font-extrabold text-[30px] leading-none uppercase tracking-wide text-center">
+            Pelada de <span style={{ color: "var(--gold)" }}>Santo Afonso</span>
           </div>
           <div className="text-[11px] font-semibold uppercase tracking-[2px]" style={{ color: "var(--muted)" }}>
             Criar conta
