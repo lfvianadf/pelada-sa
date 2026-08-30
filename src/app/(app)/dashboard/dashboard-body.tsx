@@ -41,6 +41,46 @@ export function DashboardBody({
 
   const content = (
     <>
+      <div className="flex flex-col gap-2.5">
+        <div className="text-[12px] font-bold uppercase tracking-wide" style={{ color: "var(--muted)" }}>Desempenho por Time</div>
+        <div className="rounded-xl overflow-x-auto" style={{ background: "var(--bg2)", border: "1px solid var(--hairline)" }}>
+          <div
+            className="grid px-3 py-2.5 text-[9px] font-bold tracking-wide min-w-[380px]"
+            style={{ gridTemplateColumns: "1.4fr .45fr .45fr .45fr .45fr .5fr .5fr .5fr", color: "var(--muted2)" }}
+          >
+            <div>TIME</div><div className="text-center">J</div><div className="text-center">V</div><div className="text-center">E</div>
+            <div className="text-center">D</div><div className="text-center">GM</div><div className="text-center">GS</div><div className="text-center">SG</div>
+          </div>
+          {teamStandings.map((r, i) => (
+            <div
+              key={r.teamId}
+              className="grid px-3 py-2.5 text-[11px] font-semibold items-center min-w-[380px]"
+              style={{
+                gridTemplateColumns: "1.4fr .45fr .45fr .45fr .45fr .5fr .5fr .5fr",
+                borderTop: "1px solid var(--hairline-soft)",
+                borderLeft: i === 0 ? "3px solid var(--gold)" : "3px solid transparent",
+                background: i === 0 ? "oklch(0.80 0.16 86 / .08)" : "transparent",
+              }}
+            >
+              <div className="flex items-center gap-1.5">
+                {i === 0 ? <IconTrophy size={13} color="var(--gold)" /> : <div className="w-2 h-2 rounded-full" style={{ background: r.color }} />}
+                {r.name}
+              </div>
+              <div className="text-center">{r.j}</div>
+              <div className="text-center" style={{ color: "var(--green)" }}>{r.v}</div>
+              <div className="text-center">{r.e}</div>
+              <div className="text-center" style={{ color: "var(--red)" }}>{r.d}</div>
+              <div className="text-center">{r.gm}</div>
+              <div className="text-center">{r.gs}</div>
+              <div className="text-center" style={{ color: "var(--gold)" }}>{r.sg}</div>
+            </div>
+          ))}
+          {teamStandings.length === 0 && (
+            <div className="text-center text-[13px] py-4" style={{ color: "var(--muted2)" }}>Nenhum time neste período.</div>
+          )}
+        </div>
+      </div>
+
       {teamStandings.length > 0 && (
         <div className="grid grid-cols-2 gap-2.5">
           <div className="rounded-xl p-3.5 flex flex-col gap-1" style={{ background: "var(--bg2)", border: "1px solid var(--hairline)" }}>
@@ -106,46 +146,6 @@ export function DashboardBody({
           ))}
           {assistsRanking.length === 0 && (
             <div className="text-center text-[13px] py-4" style={{ color: "var(--muted2)" }}>Nenhuma assistência registrada.</div>
-          )}
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-2.5">
-        <div className="text-[12px] font-bold uppercase tracking-wide" style={{ color: "var(--muted)" }}>Desempenho por Time</div>
-        <div className="rounded-xl overflow-x-auto" style={{ background: "var(--bg2)", border: "1px solid var(--hairline)" }}>
-          <div
-            className="grid px-3 py-2.5 text-[9px] font-bold tracking-wide min-w-[380px]"
-            style={{ gridTemplateColumns: "1.4fr .45fr .45fr .45fr .45fr .5fr .5fr .5fr", color: "var(--muted2)" }}
-          >
-            <div>TIME</div><div className="text-center">J</div><div className="text-center">V</div><div className="text-center">E</div>
-            <div className="text-center">D</div><div className="text-center">GM</div><div className="text-center">GS</div><div className="text-center">SG</div>
-          </div>
-          {teamStandings.map((r, i) => (
-            <div
-              key={r.teamId}
-              className="grid px-3 py-2.5 text-[11px] font-semibold items-center min-w-[380px]"
-              style={{
-                gridTemplateColumns: "1.4fr .45fr .45fr .45fr .45fr .5fr .5fr .5fr",
-                borderTop: "1px solid var(--hairline-soft)",
-                borderLeft: i === 0 ? "3px solid var(--gold)" : "3px solid transparent",
-                background: i === 0 ? "oklch(0.80 0.16 86 / .08)" : "transparent",
-              }}
-            >
-              <div className="flex items-center gap-1.5">
-                {i === 0 ? <IconTrophy size={13} color="var(--gold)" /> : <div className="w-2 h-2 rounded-full" style={{ background: r.color }} />}
-                {r.name}
-              </div>
-              <div className="text-center">{r.j}</div>
-              <div className="text-center" style={{ color: "var(--green)" }}>{r.v}</div>
-              <div className="text-center">{r.e}</div>
-              <div className="text-center" style={{ color: "var(--red)" }}>{r.d}</div>
-              <div className="text-center">{r.gm}</div>
-              <div className="text-center">{r.gs}</div>
-              <div className="text-center" style={{ color: "var(--gold)" }}>{r.sg}</div>
-            </div>
-          ))}
-          {teamStandings.length === 0 && (
-            <div className="text-center text-[13px] py-4" style={{ color: "var(--muted2)" }}>Nenhum time neste período.</div>
           )}
         </div>
       </div>

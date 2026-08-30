@@ -38,7 +38,6 @@ export async function updateMyProfile(name: string, position: Position): Promise
 
 export async function createPelada(
   date: string,
-  numTeams: number,
   durationMinutes: number,
   format: PeladaFormat,
 ): Promise<ActionResult & { peladaId?: number }> {
@@ -47,7 +46,7 @@ export async function createPelada(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("peladas")
-    .insert({ date, num_teams: numTeams, duration_minutes: durationMinutes, format })
+    .insert({ date, duration_minutes: durationMinutes, format })
     .select("id")
     .single();
   if (error) return { error: error.message };
@@ -65,6 +64,7 @@ export async function confirmMyPresence(peladaId: number): Promise<ActionResult>
   if (error) return { error: error.message };
   revalidatePath("/jogos");
   revalidatePath("/admin/nova-pelada");
+  revalidatePath("/admin/gerenciar-presenca");
   return {};
 }
 
@@ -80,6 +80,7 @@ export async function cancelMyPresence(peladaId: number): Promise<ActionResult> 
   if (error) return { error: error.message };
   revalidatePath("/jogos");
   revalidatePath("/admin/nova-pelada");
+  revalidatePath("/admin/gerenciar-presenca");
   return {};
 }
 
@@ -221,6 +222,7 @@ export async function createGuestPlayer(
   if (error) return { error: error.message };
 
   revalidatePath("/admin/nova-pelada");
+  revalidatePath("/admin/gerenciar-presenca");
   return { playerId: data.id };
 }
 
@@ -279,6 +281,7 @@ export async function setPresence(peladaId: number, playerId: number, present: b
     if (error) return { error: error.message };
   }
   revalidatePath("/admin/nova-pelada");
+  revalidatePath("/admin/gerenciar-presenca");
   return {};
 }
 
@@ -289,6 +292,7 @@ export async function updatePeladaNumTeams(peladaId: number, numTeams: number): 
   const { error } = await supabase.from("peladas").update({ num_teams: numTeams }).eq("id", peladaId);
   if (error) return { error: error.message };
   revalidatePath("/admin/nova-pelada");
+  revalidatePath("/admin/gerenciar-presenca");
   return {};
 }
 
