@@ -9,7 +9,7 @@ import { IconPlus } from "@/components/icons";
 import type { Position } from "@/lib/types";
 import type { PlayerRow } from "@/lib/domain";
 import type { Database } from "@/lib/database.types";
-import { createPelada, createGuestPlayer, sortear } from "@/lib/actions";
+import { createPelada, createGuestPlayer, sortear, setPresence } from "@/lib/actions";
 
 type PeladaFormat = Database["public"]["Enums"]["pelada_format"];
 
@@ -112,12 +112,19 @@ export function NovaPeladaForm({
   function handleSortear() {
     setError(null);
     startTransition(async () => {
-      const createResult = await createPelada(date, numTeams, durationMinutes, presentIds, format);
+      const createResult = await createPelada(date, numTeams, durationMinutes, format);
       if (createResult.error || !createResult.peladaId) {
         setError(createResult.error ?? "Erro ao criar pelada.");
         return;
       }
       const peladaId = createResult.peladaId;
+      for (const playerId of presentIds) {
+        const presenceResult = await setPresence(peladaId, playerId, true);
+        if (presenceResult.error) {
+          setError(presenceResult.error);
+          return;
+        }
+      }
       const sortResult = await sortear(peladaId);
       if (sortResult.error) {
         setError(sortResult.error);

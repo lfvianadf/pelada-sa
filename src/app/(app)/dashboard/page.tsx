@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentPlayer } from "@/lib/auth";
-import { standingsFor, fmtClock } from "@/lib/domain";
+import { standingsFor } from "@/lib/domain";
 import { ScreenContent } from "@/components/Screen";
 import { TopBar } from "@/components/TopBar";
 import { DashboardBody } from "./dashboard-body";
@@ -55,10 +55,6 @@ export default async function DashboardPage({
     gameIds.length > 0 ? await supabase.from("match_events").select("*").in("game_id", gameIds) : { data: [] };
   const allEvents = events ?? [];
 
-  function playerName(id: number) {
-    return allPlayers.find((p) => p.id === id)?.name ?? "";
-  }
-
   const goalCountsAll: Record<number, number> = {};
   const assistCountsAll: Record<number, number> = {};
   allEvents.forEach((e) => {
@@ -78,39 +74,16 @@ export default async function DashboardPage({
     .sort((a, b) => b.assists - a.assists)
     .slice(0, 5);
 
-  const topScorer = goalsRanking[0];
-  const topAssist = assistsRanking[0];
   const teamStandings = standingsFor(allGames, allTeams);
-
-  const goalEvents = allEvents.filter((e) => e.type === "gol");
-  const goalCounts: Record<number, number> = {};
-  goalEvents.forEach((e) => (goalCounts[e.player_id] = (goalCounts[e.player_id] ?? 0) + 1));
-  const topTodayScorerId = Object.keys(goalCounts).sort((a, b) => goalCounts[+b] - goalCounts[+a])[0];
-  const fastestGoal = [...goalEvents].sort((a, b) => a.sec - b.sec)[0];
-  const safestTeam = [...teamStandings].sort((a, b) => a.gs - b.gs)[0];
-  const winningestTeam = [...teamStandings].sort((a, b) => b.v - a.v)[0];
-
-  const isSinglePelada = !!scope && scope.startsWith("pelada-");
-  const rodadaLabel = isSinglePelada ? "na pelada" : "no período";
-
-  const highlights = [
-    { label: `Mais gols ${rodadaLabel}`, value: topTodayScorerId ? `${playerName(+topTodayScorerId)} (${goalCounts[+topTodayScorerId]})` : "—", color: "var(--gold)" },
-    { label: "Gol mais rápido", value: fastestGoal ? `${playerName(fastestGoal.player_id)} · ${fmtClock(fastestGoal.sec)}` : "—", color: "var(--gold)" },
-    { label: "Time mais seguro", value: safestTeam ? `${safestTeam.name} (${safestTeam.gs} sofridos)` : "—", color: "var(--green)" },
-    { label: "Time que mais venceu", value: winningestTeam ? `${winningestTeam.name} (${winningestTeam.v}V)` : "—", color: "var(--green)" },
-  ];
 
   return (
     <ScreenContent>
       <TopBar title="Raio-X" />
       <DashboardBody
         scopeSelector={<ScopeSelector peladas={allPeladas} years={years} selectedScope={scope ?? "all"} />}
-        topScorer={topScorer ? { ...topScorer.player, goals: topScorer.goals } : undefined}
-        topAssist={topAssist ? { ...topAssist.player, assists: topAssist.assists } : undefined}
         goalsRanking={goalsRanking.map((r) => ({ ...r.player, goals: r.goals }))}
         assistsRanking={assistsRanking.map((r) => ({ ...r.player, assists: r.assists }))}
         teamStandings={teamStandings}
-        highlights={highlights}
       />
     </ScreenContent>
   );

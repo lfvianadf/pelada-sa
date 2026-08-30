@@ -40,7 +40,6 @@ export async function createPelada(
   date: string,
   numTeams: number,
   durationMinutes: number,
-  presentIds: number[],
   format: PeladaFormat,
 ): Promise<ActionResult & { peladaId?: number }> {
   const check = await requireAdmin();
@@ -53,15 +52,35 @@ export async function createPelada(
     .single();
   if (error) return { error: error.message };
 
-  if (presentIds.length > 0) {
-    const { error: presenceErr } = await supabase
-      .from("pelada_presence")
-      .insert(presentIds.map((playerId) => ({ pelada_id: data.id, player_id: playerId })));
-    if (presenceErr) return { error: presenceErr.message };
-  }
-
   revalidatePath("/admin/nova-pelada");
+  revalidatePath("/jogos");
   return { peladaId: data.id };
+}
+
+export async function confirmMyPresence(peladaId: number): Promise<ActionResult> {
+  const player = await getCurrentPlayer();
+  if (!player) return { error: "Você precisa estar logado." };
+  const supabase = await createClient();
+  const { error } = await supabase.from("pelada_presence").upsert({ pelada_id: peladaId, player_id: player.id });
+  if (error) return { error: error.message };
+  revalidatePath("/jogos");
+  revalidatePath("/admin/nova-pelada");
+  return {};
+}
+
+export async function cancelMyPresence(peladaId: number): Promise<ActionResult> {
+  const player = await getCurrentPlayer();
+  if (!player) return { error: "Você precisa estar logado." };
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("pelada_presence")
+    .delete()
+    .eq("pelada_id", peladaId)
+    .eq("player_id", player.id);
+  if (error) return { error: error.message };
+  revalidatePath("/jogos");
+  revalidatePath("/admin/nova-pelada");
+  return {};
 }
 
 export async function finishPelada(peladaId: number): Promise<ActionResult> {

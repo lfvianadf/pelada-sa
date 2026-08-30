@@ -137,3 +137,16 @@ export function IconPlay({ size = 22, color = "currentColor" }: IconProps) {
     </svg>
   );
 }
+
+export function IconTrophy({ size = 16, color = "currentColor" }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 4h8v5a4 4 0 0 1-8 0Z" />
+      <path d="M8 5H5a2 2 0 0 0 0 4h1.5" />
+      <path d="M16 5h3a2 2 0 0 1 0 4h-1.5" />
+      <path d="M12 13v3" />
+      <path d="M9 20h6" />
+      <path d="M10 16.5h4l.5 3.5h-5Z" />
+    </svg>
+  );
+}
