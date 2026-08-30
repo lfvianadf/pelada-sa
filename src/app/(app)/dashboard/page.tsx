@@ -66,13 +66,13 @@ export default async function DashboardPage({
     .map(([playerId, goals]) => ({ player: allPlayers.find((p) => p.id === +playerId), goals }))
     .filter((r): r is { player: NonNullable<typeof r.player>; goals: number } => !!r.player)
     .sort((a, b) => b.goals - a.goals)
-    .slice(0, 5);
+    .slice(0, 3);
 
   const assistsRanking = Object.entries(assistCountsAll)
     .map(([playerId, assists]) => ({ player: allPlayers.find((p) => p.id === +playerId), assists }))
     .filter((r): r is { player: NonNullable<typeof r.player>; assists: number } => !!r.player)
     .sort((a, b) => b.assists - a.assists)
-    .slice(0, 5);
+    .slice(0, 3);
 
   const teamStandings = standingsFor(allGames, allTeams);
 

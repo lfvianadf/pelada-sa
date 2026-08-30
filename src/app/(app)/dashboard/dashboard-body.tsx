@@ -36,8 +36,26 @@ export function DashboardBody({
     }
   }
 
+  const topScoringTeam = [...teamStandings].sort((a, b) => b.gm - a.gm)[0];
+  const bestDefenseTeam = [...teamStandings].sort((a, b) => a.gs - b.gs)[0];
+
   const content = (
     <>
+      {teamStandings.length > 0 && (
+        <div className="grid grid-cols-2 gap-2.5">
+          <div className="rounded-xl p-3.5 flex flex-col gap-1" style={{ background: "var(--bg2)", border: "1px solid var(--hairline)" }}>
+            <div className="text-[10px] font-bold uppercase tracking-wide" style={{ color: "var(--muted)" }}>Time que mais fez gols</div>
+            <div className="font-[var(--font-head)] font-extrabold text-[15px]" style={{ color: "var(--gold)" }}>{topScoringTeam?.name ?? "—"}</div>
+            <div className="text-[12px] font-semibold" style={{ color: "var(--muted2)" }}>{topScoringTeam ? `${topScoringTeam.gm} gols` : ""}</div>
+          </div>
+          <div className="rounded-xl p-3.5 flex flex-col gap-1" style={{ background: "var(--bg2)", border: "1px solid var(--hairline)" }}>
+            <div className="text-[10px] font-bold uppercase tracking-wide" style={{ color: "var(--muted)" }}>Time que menos sofreu gols</div>
+            <div className="font-[var(--font-head)] font-extrabold text-[15px]" style={{ color: "var(--green)" }}>{bestDefenseTeam?.name ?? "—"}</div>
+            <div className="text-[12px] font-semibold" style={{ color: "var(--muted2)" }}>{bestDefenseTeam ? `${bestDefenseTeam.gs} sofridos` : ""}</div>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col gap-2.5">
         <div className="text-[12px] font-bold uppercase tracking-wide" style={{ color: "var(--muted)" }}>Top 3 Goleadores</div>
         <div className="rounded-xl overflow-hidden" style={{ background: "var(--bg2)", border: "1px solid var(--hairline)" }}>
