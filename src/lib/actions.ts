@@ -490,11 +490,25 @@ export async function recordEvent(
   playerId: number,
   type: "gol" | "assistencia",
   sec: number,
-): Promise<ActionResult> {
+): Promise<ActionResult & { eventId?: number }> {
   const check = await requireAdmin();
   if ("error" in check) return check;
   const supabase = await createClient();
-  const { error } = await supabase.from("match_events").insert({ game_id: gameId, player_id: playerId, type, sec });
+  const { data, error } = await supabase
+    .from("match_events")
+    .insert({ game_id: gameId, player_id: playerId, type, sec })
+    .select("id")
+    .single();
+  if (error) return { error: error.message };
+  revalidatePath("/ao-vivo");
+  return { eventId: data.id };
+}
+
+export async function deleteMatchEvent(eventId: number): Promise<ActionResult> {
+  const check = await requireAdmin();
+  if ("error" in check) return check;
+  const supabase = await createClient();
+  const { error } = await supabase.from("match_events").delete().eq("id", eventId);
   if (error) return { error: error.message };
   revalidatePath("/ao-vivo");
   return {};

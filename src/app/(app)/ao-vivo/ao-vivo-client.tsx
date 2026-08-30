@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { teamColor, fmtClock, type GameRow, type PlayerRow, type TeamRow, type MatchEventRow } from "@/lib/domain";
-import { recordEvent, checkGameOutcome, endLive, resetLiveGame } from "@/lib/actions";
+import { recordEvent, deleteMatchEvent, checkGameOutcome, endLive, resetLiveGame } from "@/lib/actions";
 
 type Step = "closed" | "team" | "scorer" | "assist" | "borrowed-scorer" | "borrowed-assist";
 
@@ -300,11 +300,24 @@ export function AoVivoClient({
   const [syncedEvents, setSyncedEvents] = useState(events);
   const pendingWritesRef = useRef<Promise<unknown>[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [lastEvent, setLastEvent] = useState<{
+    localId: number;
+    resultPromise: Promise<{ error?: string; eventId?: number }>;
+    playerName: string;
+    type: "gol" | "assistencia";
+  } | null>(null);
+  const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   if (events !== syncedEvents) {
     setSyncedEvents(events);
     setLocalEvents(events);
   }
+
+  useEffect(() => {
+    return () => {
+      if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (!game.started_at) return;
@@ -348,23 +361,46 @@ export function AoVivoClient({
     });
   }
 
+  function armUndo(localId: number, resultPromise: Promise<{ error?: string; eventId?: number }>, playerId: number, type: "gol" | "assistencia") {
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    setLastEvent({ localId, resultPromise, playerName: playerName(playerId), type });
+    undoTimerRef.current = setTimeout(() => setLastEvent(null), 5000);
+  }
+
   function handlePickScorer(id: number) {
     setScorerId(id);
+    const localId = -Date.now();
     setLocalEvents((prev) => [
       ...prev,
-      { id: -Date.now(), game_id: game.id, player_id: id, type: "gol", sec: seconds, created_at: new Date().toISOString() },
+      { id: localId, game_id: game.id, player_id: id, type: "gol", sec: seconds, created_at: new Date().toISOString() },
     ]);
     setStep("assist");
-    trackWrite(recordEvent(game.id, id, "gol", seconds));
+    const resultPromise = recordEvent(game.id, id, "gol", seconds);
+    trackWrite(resultPromise);
+    armUndo(localId, resultPromise, id, "gol");
   }
 
   function handlePickAssist(id: number) {
+    const localId = -Date.now();
     setLocalEvents((prev) => [
       ...prev,
-      { id: -Date.now(), game_id: game.id, player_id: id, type: "assistencia", sec: seconds, created_at: new Date().toISOString() },
+      { id: localId, game_id: game.id, player_id: id, type: "assistencia", sec: seconds, created_at: new Date().toISOString() },
     ]);
     resetFlow();
-    trackWrite(recordEvent(game.id, id, "assistencia", seconds));
+    const resultPromise = recordEvent(game.id, id, "assistencia", seconds);
+    trackWrite(resultPromise);
+    armUndo(localId, resultPromise, id, "assistencia");
+  }
+
+  function handleUndo() {
+    if (!lastEvent) return;
+    const { localId, resultPromise } = lastEvent;
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    setLocalEvents((prev) => prev.filter((e) => e.id !== localId));
+    setLastEvent(null);
+    resultPromise.then((result) => {
+      if (result.eventId) deleteMatchEvent(result.eventId);
+    });
   }
 
   function handleSkipAssist() {
@@ -491,6 +527,26 @@ export function AoVivoClient({
           ))}
         </div>
       </div>
+
+      {lastEvent && (
+        <div className="px-5 pb-2">
+          <div
+            className="flex items-center gap-3 rounded-xl px-4 py-3"
+            style={{ background: "var(--bg2)", border: "1px solid var(--bgold)" }}
+          >
+            <div className="flex-1 text-[13px] font-semibold">
+              <span style={{ color: "var(--gold)" }}>{lastEvent.type === "gol" ? "Gol" : "Assistência"}</span> de {lastEvent.playerName}
+            </div>
+            <button
+              onClick={handleUndo}
+              className="font-[var(--font-head)] font-extrabold text-[12px] uppercase tracking-wide shrink-0"
+              style={{ color: "var(--red)" }}
+            >
+              Desfazer
+            </button>
+          </div>
+        </div>
+      )}
 
       {isAdmin && endGameError && !awaitingTieChoice && (
         <div className="px-5 pb-2 text-center text-[12px] font-semibold" style={{ color: "var(--red)" }}>

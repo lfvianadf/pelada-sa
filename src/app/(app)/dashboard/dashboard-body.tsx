@@ -7,7 +7,6 @@ import { IconDownload } from "@/components/icons";
 import { ExportPreviewModal } from "@/components/ExportPreviewModal";
 import type { PlayerRow, Standing } from "@/lib/domain";
 import { captureElementAsPng } from "@/lib/exportPng";
-import { PeriodTabs } from "./period-tabs";
 
 interface Highlight {
   label: string;
@@ -15,7 +14,10 @@ interface Highlight {
   color: string;
 }
 
+type RankedPlayer<K extends string> = PlayerRow & Record<K, number>;
+
 export function DashboardBody({
+  scopeSelector,
   topScorer,
   topAssist,
   goalsRanking,
@@ -23,10 +25,11 @@ export function DashboardBody({
   teamStandings,
   highlights,
 }: {
-  topScorer: PlayerRow | undefined;
-  topAssist: PlayerRow | undefined;
-  goalsRanking: PlayerRow[];
-  assistsRanking: PlayerRow[];
+  scopeSelector: React.ReactNode;
+  topScorer: RankedPlayer<"goals"> | undefined;
+  topAssist: RankedPlayer<"assists"> | undefined;
+  goalsRanking: RankedPlayer<"goals">[];
+  assistsRanking: RankedPlayer<"assists">[];
   teamStandings: Standing[];
   highlights: Highlight[];
 }) {
@@ -129,7 +132,7 @@ export function DashboardBody({
       </div>
 
       <div className="flex flex-col gap-2.5">
-        <div className="text-[12px] font-bold uppercase tracking-wide" style={{ color: "var(--muted)" }}>Destaques da Rodada</div>
+        <div className="text-[12px] font-bold uppercase tracking-wide" style={{ color: "var(--muted)" }}>Destaques</div>
         <div className="grid grid-cols-2 gap-2.5">
           {highlights.map((h) => (
             <div key={h.label} className="rounded-xl p-3 flex flex-col gap-1" style={{ background: "var(--bg2)", border: "1px solid var(--hairline)" }}>
@@ -144,7 +147,7 @@ export function DashboardBody({
 
   return (
     <ScreenBody>
-      <PeriodTabs />
+      {scopeSelector}
 
       <button
         onClick={handleExport}
