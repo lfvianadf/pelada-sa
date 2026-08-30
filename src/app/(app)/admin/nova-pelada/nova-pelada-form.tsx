@@ -73,6 +73,7 @@ export function NovaPeladaForm({
   const [format, setFormat] = useState<PeladaFormat>("todos_contra_todos");
   const [players, setPlayers] = useState<PlayerRow[]>(initialPlayers);
   const [presentIds, setPresentIds] = useState<number[]>([]);
+  const [playerSearch, setPlayerSearch] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -302,8 +303,18 @@ export function NovaPeladaForm({
               </button>
             )}
 
+            <input
+              value={playerSearch}
+              onChange={(e) => setPlayerSearch(e.target.value)}
+              placeholder="Buscar jogador..."
+              className="rounded-[10px] px-3.5 py-2.5 text-[14px]"
+              style={{ background: "var(--bg2)", border: "1px solid var(--hairline)", color: "var(--text)" }}
+            />
+
             <div className="flex flex-col gap-2">
-              {players.map((p) => {
+              {players
+                .filter((p) => p.name.toLowerCase().includes(playerSearch.trim().toLowerCase()))
+                .map((p) => {
                 const present = presentIds.includes(p.id);
                 return (
                   <button
@@ -325,6 +336,11 @@ export function NovaPeladaForm({
                   </button>
                 );
               })}
+              {players.filter((p) => p.name.toLowerCase().includes(playerSearch.trim().toLowerCase())).length === 0 && (
+                <div className="text-center text-[13px] py-4" style={{ color: "var(--muted2)" }}>
+                  Nenhum jogador encontrado.
+                </div>
+              )}
             </div>
           </>
         )}
