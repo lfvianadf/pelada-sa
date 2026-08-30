@@ -124,7 +124,7 @@ export function DashboardBody({
       </div>
 
       <div className="flex flex-col gap-2.5">
-        <div className="text-[12px] font-bold uppercase tracking-wide" style={{ color: "var(--muted)" }}>Top 3 Assistências</div>
+        <div className="text-[12px] font-bold uppercase tracking-wide" style={{ color: "var(--muted)" }}>Top 3 Garçons</div>
         <div className="rounded-xl overflow-hidden" style={{ background: "var(--bg2)", border: "1px solid var(--hairline)" }}>
           {assistsRanking.map((r, i) => (
             <div
