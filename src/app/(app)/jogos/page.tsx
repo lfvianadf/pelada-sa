@@ -7,6 +7,7 @@ import { TopBar } from "@/components/TopBar";
 import { JogosList } from "./jogos-list";
 import { PeladaSelector } from "./pelada-selector";
 import { AdminActions } from "./admin-actions";
+import { PresenceCard } from "./presence-card";
 
 export default async function JogosPage({
   searchParams,
@@ -27,24 +28,29 @@ export default async function JogosPage({
     ? await Promise.all([
         supabase.from("games").select("*").eq("pelada_id", peladaId).order("id"),
         supabase.from("teams").select("*").eq("pelada_id", peladaId).order("queue_order"),
-        supabase.from("peladas").select("format, finished").eq("id", peladaId).single(),
+        supabase.from("peladas").select("date, format, finished").eq("id", peladaId).single(),
       ])
     : [{ data: [] }, { data: [] }, { data: null }];
 
   const liveGameIds = (games ?? []).filter((g) => g.status === "ao vivo").map((g) => g.id);
   const teamIds = (teams ?? []).map((t) => t.id);
-  const [{ data: liveEvents }, { data: teamPlayers }] = await Promise.all([
+  const hasTeams = (teams ?? []).length > 0;
+
+  const [{ data: liveEvents }, { data: teamPlayers }, { data: presence }] = await Promise.all([
     liveGameIds.length > 0
       ? supabase.from("match_events").select("game_id, player_id, type").in("game_id", liveGameIds)
       : Promise.resolve({ data: [] }),
     teamIds.length > 0 ? supabase.from("team_players").select("team_id, player_id").in("team_id", teamIds) : Promise.resolve({ data: [] }),
+    peladaId && !hasTeams
+      ? supabase.from("pelada_presence").select("player_id").eq("pelada_id", peladaId)
+      : Promise.resolve({ data: [] }),
   ]);
 
   const standings = standingsFor(games ?? [], teams ?? []);
-  const hasTeams = (teams ?? []).length > 0;
   const format = peladaRow?.format ?? "todos_contra_todos";
   const isFinished = peladaRow?.finished ?? false;
   const queuedTeams = (teams ?? []).filter((t) => t.queue_order !== null);
+  const confirmedIds = (presence ?? []).map((p) => p.player_id);
 
   return (
     <ScreenContent>
@@ -52,6 +58,15 @@ export default async function JogosPage({
       <ScreenBody>
         {(peladas ?? []).length > 0 && (
           <PeladaSelector peladas={peladas ?? []} selectedId={peladaId ?? null} isAdmin={me.is_admin} />
+        )}
+
+        {peladaId && !hasTeams && peladaRow && (
+          <PresenceCard
+            peladaId={peladaId}
+            date={peladaRow.date}
+            alreadyConfirmed={confirmedIds.includes(me.id)}
+            confirmedCount={confirmedIds.length}
+          />
         )}
 
         {peladaId && isFinished && (

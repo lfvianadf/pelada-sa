@@ -11,17 +11,26 @@ export default async function NovaPeladaPage() {
   if (!me.is_admin) redirect("/perfil");
 
   const supabase = await createClient();
-  const { data: players } = await supabase.from("players").select("*").order("name");
+
+  const { data: latestPelada } = await supabase
+    .from("peladas")
+    .select("id")
+    .order("date", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (latestPelada) {
+    const { count } = await supabase
+      .from("teams")
+      .select("id", { count: "exact", head: true })
+      .eq("pelada_id", latestPelada.id);
+    if (!count) redirect(`/admin/gerenciar-presenca?pelada=${latestPelada.id}`);
+  }
 
   return (
     <ScreenContent>
       <TopBar title="Nova Pelada" />
-      <NovaPeladaForm
-        players={players ?? []}
-        initialDate={new Date().toISOString().slice(0, 10)}
-        initialNumTeams={3}
-        initialDurationMinutes={10}
-      />
+      <NovaPeladaForm initialDate={new Date().toISOString().slice(0, 10)} />
     </ScreenContent>
   );
 }
