@@ -14,6 +14,7 @@ export function EstrelasList({ players, suggestions }: { players: PlayerRow[]; s
   const [adjustingId, setAdjustingId] = useState<number | null>(null);
   const [adjustValue, setAdjustValue] = useState(3);
   const [decided, setDecided] = useState<Record<number, "approved" | "ignored">>({});
+  const [search, setSearch] = useState("");
   const [isPending, startTransition] = useTransition();
 
   function latestSuggestionFor(playerId: number) {
@@ -29,6 +30,7 @@ export function EstrelasList({ players, suggestions }: { players: PlayerRow[]; s
     return { player: p, suggested, hasPending, adjusting, suggestionId: suggestion?.id ?? null };
   });
   const pendingCount = rows.filter((r) => r.hasPending).length;
+  const visibleRows = rows.filter((r) => r.player.name.toLowerCase().includes(search.trim().toLowerCase()));
 
   function handleApprove(playerId: number, suggestionId: number | null) {
     setDecided((prev) => ({ ...prev, [playerId]: "approved" }));
@@ -64,7 +66,15 @@ export function EstrelasList({ players, suggestions }: { players: PlayerRow[]; s
         <div className="text-[11px] font-semibold mt-0.5" style={{ color: "var(--muted)" }}>{pendingCount} sugestões da IA pendentes</div>
       </div>
       <ScreenBody className="pt-3.5 gap-2.5">
-        {rows.map(({ player: p, suggested, hasPending, adjusting, suggestionId }) => (
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar jogador..."
+          className="rounded-[10px] px-3.5 py-2.5 text-[14px]"
+          style={{ background: "var(--bg2)", border: "1px solid var(--hairline)", color: "var(--text)" }}
+        />
+
+        {visibleRows.map(({ player: p, suggested, hasPending, adjusting, suggestionId }) => (
           <div
             key={p.id}
             className="rounded-2xl p-3.5 flex flex-col gap-2.5"
@@ -145,6 +155,11 @@ export function EstrelasList({ players, suggestions }: { players: PlayerRow[]; s
             )}
           </div>
         ))}
+        {visibleRows.length === 0 && (
+          <div className="text-center text-[13px] py-4" style={{ color: "var(--muted2)" }}>
+            Nenhum jogador encontrado.
+          </div>
+        )}
       </ScreenBody>
     </>
   );
