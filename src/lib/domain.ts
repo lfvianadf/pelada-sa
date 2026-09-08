@@ -1,4 +1,5 @@
 import type { Tables } from "./database.types";
+import type { Position } from "./types";
 
 export type PlayerRow = Tables<"players">;
 export type TeamRow = Tables<"teams">;
@@ -10,17 +11,44 @@ export function teamColor(hue: number) {
 }
 
 export function starsArray(n: number) {
-  return Array.from({ length: 5 }, (_, i) => i < n);
+  return Array.from({ length: 5 }, (_, i) => Math.min(1, Math.max(0, n - i)));
 }
 
-export function aiSuggestedStars(p: Pick<PlayerRow, "goals" | "assists" | "games" | "wins">): number {
-  const score = p.goals * 2 + p.assists * 1.5 + p.wins;
-  const per = p.games ? score / p.games : 0;
-  if (per < 1.5) return 1;
-  if (per < 3) return 2;
-  if (per < 5) return 3;
-  if (per < 7) return 4;
-  return 5;
+export interface PositionalGameStat {
+  position: Position;
+  won: boolean;
+  cleanSheet: boolean;
+  goals: number;
+  assists: number;
+}
+
+const POSITION_WEIGHTS: Record<Position, { goal: number; assist: number; defense: number }> = {
+  Goleiro: { goal: 1.5, assist: 1.0, defense: 2.5 },
+  Zagueiro: { goal: 1.8, assist: 1.2, defense: 2.0 },
+  "Meio-campo": { goal: 2.0, assist: 1.8, defense: 1.0 },
+  Atacante: { goal: 2.2, assist: 1.3, defense: 0.8 },
+  Qualquer: { goal: 2.0, assist: 1.5, defense: 1.5 },
+};
+
+export function rawScoreForPlayer(games: PositionalGameStat[]): number | null {
+  if (games.length === 0) return null;
+  const total = games.reduce((sum, g) => {
+    const w = POSITION_WEIGHTS[g.position];
+    return sum + w.goal * g.goals + w.assist * g.assists + w.defense * (g.cleanSheet ? 1 : 0) + (g.won ? 1 : 0);
+  }, 0);
+  return total / games.length;
+}
+
+export function starDeltaFromZScore(z: number): number {
+  if (z <= -1.2) return -0.4;
+  if (z <= -0.4) return -0.2;
+  if (z <= 0.4) return 0;
+  if (z <= 1.2) return 0.2;
+  return 0.4;
+}
+
+export function clampStars(value: number): number {
+  return Math.round(Math.min(5, Math.max(1, value)) * 10) / 10;
 }
 
 export interface Standing {
