@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ScreenBody, BottomCTA } from "@/components/Screen";
 import type { Database } from "@/lib/database.types";
-import { updatePeladaDate, updatePeladaDuration, updatePeladaFormat, deletePelada, finishPelada, reopenPelada } from "@/lib/actions";
+import { updatePeladaDate, updatePeladaDuration, updatePeladaFormat, deletePelada } from "@/lib/actions";
 
 type PeladaFormat = Database["public"]["Enums"]["pelada_format"];
 
@@ -21,38 +21,10 @@ export function PeladaEditForm({
   const [date, setDate] = useState(pelada.date);
   const [durationMinutes, setDurationMinutes] = useState(pelada.duration_minutes);
   const [format, setFormat] = useState<PeladaFormat>(pelada.format);
-  const [finished, setFinished] = useState(pelada.finished);
+  const finished = pelada.finished;
   const [error, setError] = useState<string | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
-  const [confirmingFinish, setConfirmingFinish] = useState(false);
   const [isPending, startTransition] = useTransition();
-
-  function handleFinish() {
-    setError(null);
-    startTransition(async () => {
-      const result = await finishPelada(pelada.id);
-      if (result.error) {
-        setError(result.error);
-        return;
-      }
-      setFinished(true);
-      setConfirmingFinish(false);
-      router.refresh();
-    });
-  }
-
-  function handleReopen() {
-    setError(null);
-    startTransition(async () => {
-      const result = await reopenPelada(pelada.id);
-      if (result.error) {
-        setError(result.error);
-        return;
-      }
-      setFinished(false);
-      router.refresh();
-    });
-  }
 
   function handleDateChange(value: string) {
     setDate(value);
@@ -226,49 +198,6 @@ export function PeladaEditForm({
         )}
 
         <div className="flex flex-col gap-2 mt-2">
-          {finished ? (
-            <button
-              onClick={handleReopen}
-              disabled={isPending}
-              className="rounded-xl py-3 font-[var(--font-head)] font-extrabold text-[12px] uppercase tracking-wide disabled:opacity-60"
-              style={{ background: "var(--bg2)", color: "var(--text)", border: "1px solid var(--hairline)" }}
-            >
-              {isPending ? "Reabrindo..." : "Reabrir pelada"}
-            </button>
-          ) : confirmingFinish ? (
-            <div className="rounded-xl p-3.5 flex flex-col gap-3" style={{ background: "var(--bg2)", border: "1px solid var(--green)" }}>
-              <div className="text-[12px] text-center" style={{ color: "var(--muted)" }}>
-                Encerrar esta pelada? Nenhum novo jogo poderá ser iniciado. Você pode reabrir depois se precisar.
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setConfirmingFinish(false)}
-                  disabled={isPending}
-                  className="flex-1 rounded-lg py-2.5 font-[var(--font-head)] font-extrabold text-[11px] uppercase tracking-wide disabled:opacity-60"
-                  style={{ background: "transparent", color: "var(--muted)", border: "1px solid var(--hairline)" }}
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleFinish}
-                  disabled={isPending}
-                  className="flex-1 rounded-lg py-2.5 font-[var(--font-head)] font-extrabold text-[11px] uppercase tracking-wide disabled:opacity-60"
-                  style={{ background: "var(--green)", color: "#0c1a10" }}
-                >
-                  {isPending ? "Encerrando..." : "Encerrar"}
-                </button>
-              </div>
-            </div>
-          ) : (
-            <button
-              onClick={() => setConfirmingFinish(true)}
-              className="rounded-xl py-3 font-[var(--font-head)] font-extrabold text-[12px] uppercase tracking-wide"
-              style={{ background: "transparent", color: "var(--green)", border: "1px solid var(--green)" }}
-            >
-              Finalizar pelada
-            </button>
-          )}
-
           {confirmingDelete ? (
             <div className="rounded-xl p-3.5 flex flex-col gap-3" style={{ background: "var(--bg2)", border: "1px solid var(--red)" }}>
               <div className="text-[12px] text-center" style={{ color: "var(--muted)" }}>

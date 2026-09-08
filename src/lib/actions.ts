@@ -88,6 +88,18 @@ export async function finishPelada(peladaId: number): Promise<ActionResult> {
   const check = await requireAdmin();
   if ("error" in check) return check;
   const supabase = await createClient();
+
+  const { data: teams } = await supabase.from("teams").select("id").eq("pelada_id", peladaId);
+  const teamIds = (teams ?? []).map((t) => t.id);
+  if (teamIds.length > 0) {
+    const { error: deleteUnplayedError } = await supabase
+      .from("games")
+      .delete()
+      .eq("status", "agendado")
+      .or(`team_a_id.in.(${teamIds.join(",")}),team_b_id.in.(${teamIds.join(",")})`);
+    if (deleteUnplayedError) return { error: deleteUnplayedError.message };
+  }
+
   const { error } = await supabase.from("peladas").update({ finished: true }).eq("id", peladaId);
   if (error) return { error: error.message };
 
