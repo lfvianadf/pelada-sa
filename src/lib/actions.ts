@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentPlayer } from "@/lib/auth";
-import { aiSuggestedStars, HUES } from "@/lib/domain";
+import { HUES, rawScoreForPlayer, starDeltaFromZScore, clampStars, type PositionalGameStat } from "@/lib/domain";
 import type { Position } from "@/lib/types";
 import type { Database } from "@/lib/database.types";
 
@@ -90,10 +90,118 @@ export async function finishPelada(peladaId: number): Promise<ActionResult> {
   const supabase = await createClient();
   const { error } = await supabase.from("peladas").update({ finished: true }).eq("id", peladaId);
   if (error) return { error: error.message };
+
+  try {
+    await generateStarSuggestions();
+  } catch (e) {
+    console.error("Failed to generate star suggestions", e);
+  }
+
   revalidatePath("/jogos");
   revalidatePath("/admin/pelada-editar");
   revalidatePath("/dashboard");
+  revalidatePath("/admin/estrelas");
   return {};
+}
+
+async function generateStarSuggestions(): Promise<void> {
+  const supabase = await createClient();
+
+  const { data: recentPeladas } = await supabase
+    .from("peladas")
+    .select("id")
+    .eq("finished", true)
+    .order("date", { ascending: false })
+    .limit(5);
+  const peladaIds = (recentPeladas ?? []).map((p) => p.id);
+  if (peladaIds.length === 0) return;
+
+  const { data: teams } = await supabase.from("teams").select("id, pelada_id").in("pelada_id", peladaIds);
+  const allTeams = teams ?? [];
+  const teamIds = allTeams.map((t) => t.id);
+  if (teamIds.length === 0) return;
+
+  const { data: games } = await supabase
+    .from("games")
+    .select("id, team_a_id, team_b_id, score_a, score_b")
+    .eq("status", "finalizado")
+    .in("team_a_id", teamIds);
+  const { data: gamesB } = await supabase
+    .from("games")
+    .select("id, team_a_id, team_b_id, score_a, score_b")
+    .eq("status", "finalizado")
+    .in("team_b_id", teamIds);
+  const gameMap = new Map<number, { id: number; team_a_id: number; team_b_id: number; score_a: number | null; score_b: number | null }>();
+  [...(games ?? []), ...(gamesB ?? [])].forEach((g) => gameMap.set(g.id, g));
+  const allGames = Array.from(gameMap.values());
+  const gameIds = allGames.map((g) => g.id);
+  if (gameIds.length === 0) return;
+
+  const { data: teamPlayers } = await supabase.from("team_players").select("team_id, player_id").in("team_id", teamIds);
+  const allTeamPlayers = teamPlayers ?? [];
+
+  const { data: events } = await supabase
+    .from("match_events")
+    .select("game_id, player_id, type")
+    .in("game_id", gameIds);
+  const allEvents = events ?? [];
+
+  const { data: players } = await supabase.from("players").select("id, position, stars");
+  const allPlayers = players ?? [];
+
+  const playerTeamForGame = new Map<string, number>();
+  allTeamPlayers.forEach((tp) => {
+    playerTeamForGame.set(`${tp.player_id}`, tp.team_id);
+  });
+
+  const statsByPlayer = new Map<number, PositionalGameStat[]>();
+  for (const player of allPlayers) {
+    const teamId = playerTeamForGame.get(`${player.id}`);
+    if (teamId === undefined) continue;
+    const playerGames = allGames.filter((g) => g.team_a_id === teamId || g.team_b_id === teamId);
+    if (playerGames.length === 0) continue;
+
+    const gameStats: PositionalGameStat[] = playerGames.map((g) => {
+      const isA = g.team_a_id === teamId;
+      const ownScore = isA ? g.score_a : g.score_b;
+      const oppScore = isA ? g.score_b : g.score_a;
+      const won = (ownScore ?? 0) > (oppScore ?? 0);
+      const cleanSheet = (oppScore ?? 0) === 0;
+      const playerEvents = allEvents.filter((e) => e.game_id === g.id && e.player_id === player.id);
+      const goals = playerEvents.filter((e) => e.type === "gol").length;
+      const assists = playerEvents.filter((e) => e.type === "assistencia").length;
+      return { position: player.position, won, cleanSheet, goals, assists };
+    });
+    statsByPlayer.set(player.id, gameStats);
+  }
+
+  const rawScores = new Map<number, number>();
+  statsByPlayer.forEach((gameStats, playerId) => {
+    const score = rawScoreForPlayer(gameStats);
+    if (score !== null) rawScores.set(playerId, score);
+  });
+  if (rawScores.size === 0) return;
+
+  const scoreValues = Array.from(rawScores.values());
+  const mean = scoreValues.reduce((a, b) => a + b, 0) / scoreValues.length;
+  const variance = scoreValues.reduce((a, b) => a + (b - mean) ** 2, 0) / scoreValues.length;
+  const stdDev = Math.sqrt(variance);
+
+  const suggestions: { player_id: number; suggested: number; status: "pendente" }[] = [];
+  rawScores.forEach((score, playerId) => {
+    const player = allPlayers.find((p) => p.id === playerId);
+    if (!player) return;
+    const z = stdDev > 0 ? (score - mean) / stdDev : 0;
+    const delta = starDeltaFromZScore(z);
+    const suggested = clampStars(player.stars + delta);
+    if (suggested !== player.stars) {
+      suggestions.push({ player_id: playerId, suggested, status: "pendente" });
+    }
+  });
+
+  if (suggestions.length > 0) {
+    await supabase.from("star_suggestions").insert(suggestions);
+  }
 }
 
 export async function reopenPelada(peladaId: number): Promise<ActionResult> {
@@ -687,14 +795,21 @@ export async function approveStarSuggestion(playerId: number, suggestionId: numb
   if ("error" in check) return check;
   const supabase = await createClient();
 
-  const { data: player } = await supabase
-    .from("players")
-    .select("goals, assists, games, wins")
-    .eq("id", playerId)
-    .single();
-  if (!player) return { error: "Jogador não encontrado." };
+  let suggested: number;
+  if (suggestionId) {
+    const { data: suggestion } = await supabase
+      .from("star_suggestions")
+      .select("suggested")
+      .eq("id", suggestionId)
+      .single();
+    if (!suggestion) return { error: "Sugestão não encontrada." };
+    suggested = suggestion.suggested;
+  } else {
+    const { data: player } = await supabase.from("players").select("stars").eq("id", playerId).single();
+    if (!player) return { error: "Jogador não encontrado." };
+    suggested = player.stars;
+  }
 
-  const suggested = aiSuggestedStars(player);
   const { error } = await supabase.from("players").update({ stars: suggested, star_origin: "ia" }).eq("id", playerId);
   if (error) return { error: error.message };
 
@@ -718,12 +833,8 @@ export async function ignoreStarSuggestion(playerId: number, suggestionId: numbe
     const { error } = await supabase.from("star_suggestions").update({ status: "ignorada" }).eq("id", suggestionId);
     if (error) return { error: error.message };
   } else {
-    const { data: player } = await supabase
-      .from("players")
-      .select("goals, assists, games, wins")
-      .eq("id", playerId)
-      .single();
-    const suggested = player ? aiSuggestedStars(player) : 3;
+    const { data: player } = await supabase.from("players").select("stars").eq("id", playerId).single();
+    const suggested = player ? player.stars : 3;
     const { error } = await supabase
       .from("star_suggestions")
       .insert({ player_id: playerId, suggested, status: "ignorada" });

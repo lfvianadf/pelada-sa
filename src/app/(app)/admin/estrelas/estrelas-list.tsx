@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { ScreenBody } from "@/components/Screen";
 import { Avatar } from "@/components/Avatar";
 import { Stars } from "@/components/Stars";
-import { aiSuggestedStars, type PlayerRow } from "@/lib/domain";
+import type { PlayerRow } from "@/lib/domain";
 import type { Tables } from "@/lib/database.types";
 import { approveStarSuggestion, ignoreStarSuggestion, adjustStars } from "@/lib/actions";
 
@@ -22,10 +22,10 @@ export function EstrelasList({ players, suggestions }: { players: PlayerRow[]; s
 
   const rows = players.map((p) => {
     const suggestion = latestSuggestionFor(p.id);
-    const suggested = aiSuggestedStars(p);
-    const decision = decided[p.id] ?? (suggestion?.status === "aprovada" ? "approved" : suggestion?.status === "ignorada" || suggestion?.status === "ajustada" ? "ignored" : undefined);
+    const suggested = suggestion?.status === "pendente" ? suggestion.suggested : null;
+    const decision = decided[p.id];
     const adjusting = adjustingId === p.id;
-    const hasPending = suggested !== p.stars && decision !== "approved" && decision !== "ignored" && !adjusting;
+    const hasPending = suggested !== null && decision !== "approved" && decision !== "ignored" && !adjusting;
     return { player: p, suggested, hasPending, adjusting, suggestionId: suggestion?.id ?? null };
   });
   const pendingCount = rows.filter((r) => r.hasPending).length;
@@ -84,9 +84,9 @@ export function EstrelasList({ players, suggestions }: { players: PlayerRow[]; s
             {hasPending && (
               <div className="flex flex-col gap-2.5 rounded-[10px] px-3 py-2.5" style={{ background: "oklch(0.80 0.16 86 / .08)" }}>
                 <div className="flex items-center justify-center gap-2.5 text-[13px] font-bold">
-                  <span style={{ color: "var(--muted)" }}>{p.stars}★</span>
+                  <span style={{ color: "var(--muted)" }}>{p.stars.toFixed(1)}★</span>
                   <span style={{ color: "var(--muted2)" }}>→</span>
-                  <span className="font-[var(--font-head)] font-extrabold text-[15px]" style={{ color: "var(--gold)" }}>{suggested}★ sugerido</span>
+                  <span className="font-[var(--font-head)] font-extrabold text-[15px]" style={{ color: "var(--gold)" }}>{suggested?.toFixed(1)}★ sugerido</span>
                 </div>
                 <div className="flex gap-1.5">
                   <button
@@ -117,11 +117,22 @@ export function EstrelasList({ players, suggestions }: { players: PlayerRow[]; s
               </div>
             )}
 
+            {!hasPending && !adjusting && (
+              <button
+                onClick={() => handleStartAdjust(p.id, p.stars)}
+                disabled={isPending}
+                className="rounded-lg py-2 font-[var(--font-head)] font-extrabold text-[10px] uppercase tracking-wide"
+                style={{ background: "transparent", color: "var(--muted)", border: "1px solid var(--hairline)" }}
+              >
+                Ajustar estrela
+              </button>
+            )}
+
             {adjusting && (
               <div className="flex items-center gap-3 justify-center rounded-[10px] p-2.5" style={{ background: "var(--bg3)" }}>
-                <button onClick={() => setAdjustValue((v) => Math.max(1, v - 1))} className="w-[34px] h-[34px] rounded-lg text-[16px]" style={{ background: "var(--bg2)" }}>−</button>
-                <div className="font-[var(--font-head)] font-extrabold text-[18px] w-6 text-center" style={{ color: "var(--gold)" }}>{adjustValue}</div>
-                <button onClick={() => setAdjustValue((v) => Math.min(5, v + 1))} className="w-[34px] h-[34px] rounded-lg text-[16px]" style={{ background: "var(--bg2)" }}>+</button>
+                <button onClick={() => setAdjustValue((v) => Math.round(Math.max(1, v - 0.1) * 10) / 10)} className="w-[34px] h-[34px] rounded-lg text-[16px]" style={{ background: "var(--bg2)" }}>−</button>
+                <div className="font-[var(--font-head)] font-extrabold text-[18px] w-12 text-center" style={{ color: "var(--gold)" }}>{adjustValue.toFixed(1)}</div>
+                <button onClick={() => setAdjustValue((v) => Math.round(Math.min(5, v + 0.1) * 10) / 10)} className="w-[34px] h-[34px] rounded-lg text-[16px]" style={{ background: "var(--bg2)" }}>+</button>
                 <button
                   onClick={() => handleConfirmAdjust(p.id, suggestionId)}
                   disabled={isPending}
